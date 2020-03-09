@@ -95,7 +95,7 @@ TurnAllOff = Button(LightControl, text="Lights Off", command=SetLightsOff, font=
 LightControl.bind('f', SetLightsOff)
 TurnAllOff.grid(column=0, row=3, padx=10, pady=10)
 
-BackLight = Button(LightControl, text="Backlight Mode", command=SetBackLight, font=("Arial", 19), width=15)
+BackLight = Button(LightControl, text="BackLight Mode", command=SetBackLight, font=("Arial", 19), width=15)
 LightControl.bind('b', SetBackLight)
 BackLight.grid(column=1, row=2, padx=10, pady=10)
 
