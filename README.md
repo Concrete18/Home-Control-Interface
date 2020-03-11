@@ -1,5 +1,5 @@
 # Home-Control-Interface
-Control interface that allows control  of my lights, smart plugs, and audio default PC settings.
+Control interface that allows control  of my lights, smart plugs, and PC audio default settings.
 
 ## Requirements
 Uses AHK and NIRCMD for control of the default audio device. (AHK and NirCMD must be installed seperately)
