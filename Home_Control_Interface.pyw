@@ -2,6 +2,7 @@ from tkinter import Tk, Button, Label
 from phue import Bridge
 from pyHS100 import SmartPlug
 from ahk import AHK
+from functools import partial
 
 b = Bridge('192.168.0.134')  # Hue Hub Connection
 Heater = SmartPlug("192.168.0.146")  # Heater Smart Plug Connection
@@ -12,27 +13,14 @@ Lighthouse = SmartPlug("192.168.0.196")  # Lighthouse Smart Plug Connection
 
 
 #  Hue Bulb Functions
-def SetLightsOff(e=None):
+def SetScene(SceneName):
+    b.run_scene('My Bedroom', SceneName, 1)
+
+
+def SetLightsOff():
     b.set_group('My Bedroom', 'on', False)
 
 
-def SetLightsOn(e=None):
-    b.run_scene('My Bedroom', 'Normal', 1)
-
-
-def SetBackLight(e=None):
-    b.run_scene('My Bedroom', 'Backlight', 1)
-
-
-def SetNightLight(e=None):
-    b.run_scene('My Bedroom', 'Night light', 1)
-
-
-def SetDimmedLight(e=None):
-    b.run_scene('My Bedroom', 'Dimmed', 1)
-
-
-#  Smart Plug Functions
 def LighthouseToggle(e=None):
     if Lighthouse.get_sysinfo()["relay_state"] == 0:
         Lighthouse.turn_on()
@@ -58,12 +46,8 @@ ahk_headphones = 'Run nircmd setdefaultsounddevice "Headphones"'
 ahk_speakers = 'Run nircmd setdefaultsounddevice "Logitech Speakers"'
 
 
-def SetSoundToSpeakers():
-    ahk.run_script(ahk_speakers, blocking=False)
-
-
-def SetSoundToHeadphones():
-    ahk.run_script(ahk_headphones, blocking=False)
+def SetSoundDevice(Device):
+    ahk.run_script(Device, blocking=False)
 
 
 #  ESC to Close Function
@@ -87,24 +71,24 @@ LightModes.grid(column=1, row=1)
 BlankSpace = Label(LightControl, text="", bg='white', font=("Arial Bold", 20))
 BlankSpace.grid(column=0, row=1)
 
-LightsOn = Button(LightControl, text="Lights On", command=SetLightsOn, font=("Arial", 19), width=15)
-LightControl.bind('o', SetLightsOn)
+LightsOn = Button(LightControl, text="Lights On",
+                  command=partial(SetScene, 'Normal'), font=("Arial", 19), width=15)
 LightsOn.grid(column=0, row=2, padx=10, pady=10)
 
-TurnAllOff = Button(LightControl, text="Lights Off", command=SetLightsOff, font=("Arial", 19), width=15)
-LightControl.bind('f', SetLightsOff)
+TurnAllOff = Button(LightControl, text="Lights Off",
+                    command=SetLightsOff, font=("Arial", 19), width=15)
 TurnAllOff.grid(column=0, row=3, padx=10, pady=10)
 
-BackLight = Button(LightControl, text="BackLight Mode", command=SetBackLight, font=("Arial", 19), width=15)
-LightControl.bind('b', SetBackLight)
+BackLight = Button(LightControl, text="BackLight Mode",
+                   command=partial(SetScene, 'Backlight'), font=("Arial", 19), width=15)
 BackLight.grid(column=1, row=2, padx=10, pady=10)
 
-DimmedMode = Button(LightControl, text="Dimmed Mode", command=SetDimmedLight, font=("Arial", 19), width=15)
-LightControl.bind('d', SetDimmedLight)
+DimmedMode = Button(LightControl, text="Dimmed Mode",
+                    command=partial(SetScene, 'Dimmed'), font=("Arial", 19), width=15)
 DimmedMode.grid(column=2, row=2, padx=10, pady=10)
 
-Nightlight = Button(LightControl, text="Night Light", command=SetNightLight, font=("Arial", 19), width=15)
-LightControl.bind('n', SetNightLight)
+Nightlight = Button(LightControl, text="Night Light",
+                    command=partial(SetScene, 'Night light'), font=("Arial", 19), width=15)
 Nightlight.grid(column=1, row=3, padx=10, pady=10)
 
 #  Smart Switch
@@ -144,10 +128,10 @@ BlankSpace.grid(column=0, row=6, padx=10)
 AudioSettings = Label(LightControl, text="Audio Settings", bg='white', font=("Arial Bold", 20))
 AudioSettings.grid(column=1, row=6)
 
-AudioToSpeakers = Button(LightControl, text="Speaker Audio", command=SetSoundToSpeakers, font=("Arial", 19), width=15)
+AudioToSpeakers = Button(LightControl, text="Speaker Audio", command=partial(SetSoundDevice, ahk_speakers), font=("Arial", 19), width=15)
 AudioToSpeakers.grid(column=0, row=7, padx=10, pady=10)
 
-AudioToHeadphones = Button(LightControl, text="Headphone Audio", command=SetSoundToHeadphones, font=("Arial", 19),
+AudioToHeadphones = Button(LightControl, text="Headphone Audio", command=partial(SetSoundDevice, ahk_headphones), font=("Arial", 19),
                            width=15)
 AudioToHeadphones.grid(column=1, row=7, padx=10, pady=10)
 
