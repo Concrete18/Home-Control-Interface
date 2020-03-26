@@ -3,6 +3,7 @@ from phue import Bridge
 from pyHS100 import SmartPlug
 from ahk import AHK
 from functools import partial
+import subprocess
 
 b = Bridge('192.168.0.134')  # Hue Hub Connection
 Heater = SmartPlug("192.168.0.146")  # Heater Smart Plug Connection
@@ -21,7 +22,16 @@ def SetLightsOff():
     b.set_group('My Bedroom', 'on', False)
 
 
-def LighthouseToggle(e=None):
+def HeaterToggle():
+    if Heater.get_sysinfo()["relay_state"] == 0:
+        Heater.turn_on()
+        HeaterButton.config(relief='sunken')  # On State
+    else:
+        Heater.turn_off()
+        HeaterButton.config(relief='raised')  # Off State
+
+
+def LighthouseToggle():
     if Lighthouse.get_sysinfo()["relay_state"] == 0:
         Lighthouse.turn_on()
         VRLighthouseButton.config(relief='sunken')
@@ -30,13 +40,11 @@ def LighthouseToggle(e=None):
         VRLighthouseButton.config(relief='raised')
 
 
-def HeaterToggle(e=None):
-    if Heater.get_sysinfo()["relay_state"] == 0:
-        Heater.turn_on()
-        HeaterButton.config(relief='sunken')  # On State
-    else:
-        Heater.turn_off()
-        HeaterButton.config(relief='raised')  # Off State
+def StartVR():
+    # if Lighthouse.get_sysinfo()["relay_state"] == 0:
+    #     Lighthouse.turn_on()
+    # VRLighthouseButton.config(relief='sunken')
+    subprocess.call("D:/My Installed Games/Steam Games/steamapps/common/SteamVR/bin/win64/vrstartup.exe")
 
 
 #  Requires AHK and NirCMD to work
@@ -98,14 +106,26 @@ SmartPlug.grid(column=1, row=4)
 BlankSpace = Label(LightControl, text="", bg='white', font=("Arial Bold", 20))
 BlankSpace.grid(column=0, row=4, padx=10)
 
-VRLighthouseButton = Button(LightControl, text="LightHouse Switch", command=LighthouseToggle, font=("Arial", 19),
-                            width=15)
-LightControl.bind('v', LighthouseToggle)
-VRLighthouseButton.grid(column=0, row=5, padx=10)
-
 HeaterButton = Button(LightControl, text="Heater Switch", command=HeaterToggle, font=("Arial", 19), width=15)
-LightControl.bind('h', HeaterToggle)
-HeaterButton.grid(column=1, row=5, padx=10, pady=10)
+HeaterButton.grid(column=0, row=5, padx=10, pady=10)
+
+UnsetButton = Button(LightControl, text="Unset", state='disabled', command=HeaterToggle, font=("Arial", 19), width=15)
+UnsetButton.grid(column=1, row=5, padx=10, pady=10)
+
+#  VR Settings
+VRSettings = Label(LightControl, text="VR Settings", bg='white', font=("Arial Bold", 20))
+VRSettings.grid(column=1, row=8)
+
+BlankSpace = Label(LightControl, text="", bg='white', font=("Arial Bold", 20))
+BlankSpace.grid(column=0, row=4, padx=10)
+
+StartVRButton = Button(LightControl, text="Start VR", command=StartVR, font=("Arial", 19),
+                            width=15)
+StartVRButton.grid(column=0, row=9, padx=10)
+
+VRLighthouseButton = Button(LightControl, text="Lighthouse Switch", command=LighthouseToggle, font=("Arial", 19),
+                            width=15)
+VRLighthouseButton.grid(column=1, row=9, padx=10, pady=10)
 
 
 #  Checks Device State and updates the button.
