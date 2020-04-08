@@ -67,7 +67,7 @@ def close(Event):
 
 
 LightControl = Tk()
-LightControl.title("Computer Control Interface")
+LightControl.title("Home Control Interface")
 LightControl.iconbitmap('bulb.ico')
 LightControl.configure(bg='white')
 LightControl.resizable(width=False, height=False)
@@ -80,10 +80,10 @@ FPadX = 10
 FPadY = 10
 
 HueLightControlFrame = LabelFrame(LightControl, text='Hue Light Control', bg=Background, font=BaseFont, padx=FPadX, pady=FPadX, width=2000, height=4000)
-HueLightControlFrame.grid(column=0, row=0, padx=FPadX, pady=FPadX)
+HueLightControlFrame.grid(column=0, rowspan=2, padx=FPadX, pady=FPadX)
 
 SmartPlugControlFrame = LabelFrame(LightControl, text='Smart Plug Control', bg=Background, font=BaseFont, padx=FPadX, pady=FPadX, width=300, height=400)
-SmartPlugControlFrame.grid(column=0, row=1, padx=FPadX, pady=FPadX)
+SmartPlugControlFrame.grid(column=0, row=2, padx=FPadX, pady=FPadX)
 
 AudioSettingsFrame = LabelFrame(LightControl, text='Audio Settings', bg=Background, font=BaseFont, padx=FPadX, pady=FPadX, width=300, height=400)
 AudioSettingsFrame.grid(column=1, row=0, padx=FPadX, pady=FPadX)
@@ -93,13 +93,6 @@ VRSettingsFrame.grid(column=1, row=1)
 
 # Binding for ESC Close
 LightControl.bind("<Escape>", close)
-
-# Lighting Modes
-# LightModes = Label(HueLightControlF, text="Hue Light Control", bg='white', font=("Arial Bold", 20))
-# LightModes.grid(column=1, row=1)
-# Grid Spacing with no other function
-# BlankSpace = Label(HueLightControlF, text="", bg='white', font=("Arial Bold", 20))
-# BlankSpace.grid(column=0, row=1)
 
 LightsOn = Button(HueLightControlFrame, text="Lights On",
                   command=partial(SetScene, 'Normal'), font=("Arial", 19), width=15)
