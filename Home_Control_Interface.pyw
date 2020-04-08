@@ -62,7 +62,7 @@ def SetSoundDevice(Device):
 
 # ESC to Close Function
 # Empty parameter allows this to work
-def close(event):
+def close(Event):
     LightControl.destroy()
 
 
