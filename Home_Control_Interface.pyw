@@ -4,6 +4,9 @@ from pyHS100 import SmartPlug
 from ahk import AHK
 from functools import partial
 import subprocess
+import socket
+
+CurrentPC = socket.gethostname()
 
 b = Bridge('192.168.0.134')  # Hue Hub Connection
 Heater = SmartPlug("192.168.0.146")  # Heater Smart Plug Connection
@@ -44,8 +47,6 @@ def StartVR():
     if Lighthouse.get_sysinfo()["relay_state"] == 0:
         Lighthouse.turn_on()
         VRLighthouseButton.config(relief='sunken')
-    else:
-        pass
     subprocess.call("D:/My Installed Games/Steam Games/steamapps/common/SteamVR/bin/win64/vrstartup.exe")
 
 
@@ -54,14 +55,15 @@ ahk = AHK(executable_path=r'C:\Program Files\AutoHotkey\AutoHotkey.exe')
 # These simply name AHK commands that are ran as functions.
 ahk_headphones = 'Run nircmd setdefaultsounddevice "Headphones"'
 ahk_speakers = 'Run nircmd setdefaultsounddevice "Logitech Speakers"'
+ahk_SurfaceAux = 'Run nircmd setdefaultsounddevice "Aux"'
+ahk_SurfaceSpeakers = 'Run nircmd setdefaultsounddevice "Speakers"'
 
 
 def SetSoundDevice(Device):
     ahk.run_script(Device, blocking=False)
 
 
-# ESC to Close Function
-# Empty parameter allows this to work
+# ESC to Close Function - Empty parameter allows this to work
 def close(Event):
     LightControl.destroy()
 
@@ -75,7 +77,7 @@ LightControl.resizable(width=False, height=False)
 
 # Frames
 Background = 'white'
-BaseFont = ('Arial', 20)
+BaseFont = ('Arial Bold', 20)
 FPadX = 10
 FPadY = 10
 
@@ -83,13 +85,11 @@ HueLightControlFrame = LabelFrame(LightControl, text='Hue Light Control', bg=Bac
 HueLightControlFrame.grid(column=0, rowspan=2, padx=FPadX, pady=FPadX)
 
 SmartPlugControlFrame = LabelFrame(LightControl, text='Smart Plug Control', bg=Background, font=BaseFont, padx=FPadX, pady=FPadX, width=300, height=400)
-SmartPlugControlFrame.grid(column=0, row=2, padx=FPadX, pady=FPadX)
+SmartPlugControlFrame.grid(column=1, row=0, padx=FPadX, pady=FPadX)
 
 AudioSettingsFrame = LabelFrame(LightControl, text='Audio Settings', bg=Background, font=BaseFont, padx=FPadX, pady=FPadX, width=300, height=400)
-AudioSettingsFrame.grid(column=1, row=0, padx=FPadX, pady=FPadX)
+AudioSettingsFrame.grid(column=1, row=1, padx=FPadX, pady=FPadX)
 
-VRSettingsFrame = LabelFrame(LightControl, text='VR Settings', bg=Background, font=BaseFont, padx=FPadX, pady=FPadX, width=300, height=400)
-VRSettingsFrame.grid(column=1, row=1)
 
 # Binding for ESC Close
 LightControl.bind("<Escape>", close)
@@ -120,13 +120,6 @@ HeaterButton.grid(column=0, row=5, padx=10, pady=10)
 UnsetButton = Button(SmartPlugControlFrame, text="Unset", state='disabled', command=HeaterToggle, font=("Arial", 19), width=15)
 UnsetButton.grid(column=1, row=5, padx=10, pady=10)
 
-StartVRButton = Button(VRSettingsFrame, text="Start VR", command=StartVR, font=("Arial", 19), width=15)
-StartVRButton.grid(column=0, row=9, padx=10)
-
-VRLighthouseButton = Button(VRSettingsFrame, text="Lighthouse Switch", command=LighthouseToggle, font=("Arial", 19),
-                            width=15)
-VRLighthouseButton.grid(column=1, row=9, padx=10, pady=10)
-
 
 # Checks Device State and updates the button.
 def PlugStateCheck(Device, DeviceButton):
@@ -136,15 +129,41 @@ def PlugStateCheck(Device, DeviceButton):
         DeviceButton.config(relief='raised')  # Off State
 
 
+if CurrentPC == 'Aperture-Two':
+    print(CurrentPC)
+    VRSettingsFrame = LabelFrame(LightControl, text='VR Settings',
+                                 bg=Background, font=BaseFont, padx=FPadX, pady=FPadX, width=300, height=400)
+    VRSettingsFrame.grid(column=0, row=2, padx=FPadX, pady=FPadX)
+
+    StartVRButton = Button(VRSettingsFrame, text="Start VR", command=StartVR, font=("Arial", 19), width=15)
+    StartVRButton.grid(column=0, row=9, padx=10)
+
+    VRLighthouseButton = Button(VRSettingsFrame, text="Lighthouse Switch",
+                                command=LighthouseToggle, font=("Arial", 19), width=15)
+    VRLighthouseButton.grid(column=1, row=9, padx=10, pady=10)
+
+    AudioToSpeakers = Button(AudioSettingsFrame, text="Speaker Audio",
+                             command=partial(SetSoundDevice, ahk_speakers), font=("Arial", 19), width=15)
+    AudioToSpeakers.grid(column=0, row=7, padx=10, pady=10)
+
+    AudioToHeadphones = Button(AudioSettingsFrame, text="Headphone Audio",
+                               command=partial(SetSoundDevice, ahk_headphones), font=("Arial", 19),width=15)
+    AudioToHeadphones.grid(column=1, row=7, padx=10, pady=10)
+
+    PlugStateCheck(Lighthouse, VRLighthouseButton)
+
+elif CurrentPC == 'Surface-1':
+    print(CurrentPC)
+    AudioToSpeakers = Button(AudioSettingsFrame, text="Speaker Audio",
+                             command=partial(SetSoundDevice, ahk_SurfaceSpeakers), font=("Arial", 19), width=15)
+    AudioToSpeakers.grid(column=0, row=7, padx=10, pady=10)
+
+    AudioToHeadphones = Button(AudioSettingsFrame, text="Headphone Audio",
+                               command=partial(SetSoundDevice, ahk_SurfaceAux), font=("Arial", 19),width=15)
+    AudioToHeadphones.grid(column=1, row=7, padx=10, pady=10)
+
+
 #  Smart Plugs running through State check function.
 PlugStateCheck(Heater, HeaterButton)
-PlugStateCheck(Lighthouse, VRLighthouseButton)
-
-AudioToSpeakers = Button(AudioSettingsFrame, text="Speaker Audio", command=partial(SetSoundDevice, ahk_speakers), font=("Arial", 19), width=15)
-AudioToSpeakers.grid(column=0, row=7, padx=10, pady=10)
-
-AudioToHeadphones = Button(AudioSettingsFrame, text="Headphone Audio", command=partial(SetSoundDevice, ahk_headphones), font=("Arial", 19),
-                           width=15)
-AudioToHeadphones.grid(column=1, row=7, padx=10, pady=10)
 
 LightControl.mainloop()
