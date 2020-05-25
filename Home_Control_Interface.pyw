@@ -1,12 +1,14 @@
-from tkinter import Tk, Button, Label, LabelFrame
+from tkinter import Tk, Button, LabelFrame
 from phue import Bridge
 from pyHS100 import SmartPlug
 from ahk import AHK
 from functools import partial
 import subprocess
 import socket
+import os
 
 CurrentPC = socket.gethostname()
+cwd = os.getcwd()
 
 b = Bridge('192.168.0.134')  # Hue Hub Connection
 Heater = SmartPlug("192.168.0.146")  # Heater Smart Plug Connection
@@ -50,11 +52,24 @@ def StartVR():
     subprocess.call("D:/My Installed Games/Steam Games/steamapps/common/SteamVR/bin/win64/vrstartup.exe")
 
 
+def pc_mode():
+    subprocess.call([f'{cwd}/Batches/PC Mode.bat'])
+    ahk.run_script(ahk_speakers, blocking=False)
+    print('PC Mode Set')
+
+
+def tv_mode():
+    subprocess.call([f'{cwd}/Batches/TV Mode.bat'])
+    ahk.run_script(ahk_tv, blocking=False)
+    print('TV Mode Set')
+
+
 # Requires AHK and NirCMD to work
 ahk = AHK(executable_path=r'C:\Program Files\AutoHotkey\AutoHotkey.exe')
 # These simply name AHK commands that are ran as functions.
 ahk_headphones = 'Run nircmd setdefaultsounddevice "Headphones"'
-ahk_speakers = 'Run nircmd setdefaultsounddevice "Logitech Speakers"'
+ahk_speakers = 'Run nircmd setdefaultsounddevice "Logitech Speakers" 1'
+ahk_tv = 'Run nircmd setdefaultsounddevice "SONY TV" 1'
 ahk_SurfaceAux = 'Run nircmd setdefaultsounddevice "Aux"'
 ahk_SurfaceSpeakers = 'Run nircmd setdefaultsounddevice "Speakers"'
 
@@ -81,14 +96,17 @@ BaseFont = ('Arial Bold', 20)
 FPadX = 10
 FPadY = 10
 
-HueLightControlFrame = LabelFrame(LightControl, text='Hue Light Control', bg=Background, font=BaseFont, padx=FPadX, pady=FPadX, width=2000, height=4000)
-HueLightControlFrame.grid(column=0, rowspan=2, padx=FPadX, pady=FPadX)
+HueLightControlFrame = LabelFrame(LightControl, text='Hue Light Control',
+                                  bg=Background, font=BaseFont, padx=FPadX, pady=FPadX, width=2000, height=4000)
+HueLightControlFrame.grid(column=0, rowspan=2, padx=FPadX, pady=FPadY)
 
-SmartPlugControlFrame = LabelFrame(LightControl, text='Smart Plug Control', bg=Background, font=BaseFont, padx=FPadX, pady=FPadX, width=300, height=400)
-SmartPlugControlFrame.grid(column=1, row=0, padx=FPadX, pady=FPadX)
+SmartPlugControlFrame = LabelFrame(LightControl, text='Smart Plug Control',
+                                   bg=Background, font=BaseFont, padx=FPadX, pady=FPadX, width=300, height=390)
+SmartPlugControlFrame.grid(column=1, row=0, padx=FPadX, pady=FPadY)
 
-AudioSettingsFrame = LabelFrame(LightControl, text='Audio Settings', bg=Background, font=BaseFont, padx=FPadX, pady=FPadX, width=300, height=400)
-AudioSettingsFrame.grid(column=1, row=1, padx=FPadX, pady=FPadX)
+AudioSettingsFrame = LabelFrame(LightControl, text='Audio Settings',
+                                bg=Background, font=BaseFont, padx=FPadX, pady=FPadX, width=300, height=390)
+AudioSettingsFrame.grid(column=1, row=1, padx=FPadX, pady=FPadY)
 
 
 # Binding for ESC Close
@@ -117,7 +135,8 @@ Nightlight.grid(column=0, row=3, padx=10, pady=10)
 HeaterButton = Button(SmartPlugControlFrame, text="Heater Switch", command=HeaterToggle, font=("Arial", 19), width=15)
 HeaterButton.grid(column=0, row=5, padx=10, pady=10)
 
-UnsetButton = Button(SmartPlugControlFrame, text="Unset", state='disabled', command=HeaterToggle, font=("Arial", 19), width=15)
+UnsetButton = Button(SmartPlugControlFrame, text="Unset", state='disabled', command=HeaterToggle,
+                     font=("Arial", 19), width=15)
 UnsetButton.grid(column=1, row=5, padx=10, pady=10)
 
 
@@ -149,6 +168,16 @@ if CurrentPC == 'Aperture-Two':
     AudioToHeadphones = Button(AudioSettingsFrame, text="Headphone Audio",
                                command=partial(SetSoundDevice, ahk_headphones), font=("Arial", 19),width=15)
     AudioToHeadphones.grid(column=1, row=7, padx=10, pady=10)
+
+    ProjectionFrame = LabelFrame(LightControl, text='Projection', bg=Background,
+                                 font=BaseFont, padx=FPadX, pady=FPadX, width=300, height=400)
+    ProjectionFrame.grid(column=1, row=2, padx=FPadX, pady=FPadX)
+
+    SwitchToPCMode = Button(ProjectionFrame, text="PC Mode", command=pc_mode, font=("Arial", 19), width=15)
+    SwitchToPCMode.grid(column=0, row=9, padx=10)
+
+    SwitchToTVMode = Button(ProjectionFrame, text="TV Mode", command=tv_mode, font=("Arial", 19), width=15)
+    SwitchToTVMode.grid(column=1, row=9, padx=10)
 
     PlugStateCheck(Lighthouse, VRLighthouseButton)
 
