@@ -5,6 +5,7 @@ from ahk import AHK
 from functools import partial
 import subprocess
 import socket
+import time
 import os
 
 CurrentPC = socket.gethostname()
@@ -54,12 +55,14 @@ def StartVR():
 
 def pc_mode():
     subprocess.call([f'{cwd}/Batches/PC Mode.bat'])
+    time.sleep(10)
     ahk.run_script(ahk_speakers, blocking=False)
     print('PC Mode Set')
 
 
 def tv_mode():
     subprocess.call([f'{cwd}/Batches/TV Mode.bat'])
+    time.sleep(10)
     ahk.run_script(ahk_tv, blocking=False)
     print('TV Mode Set')
 
