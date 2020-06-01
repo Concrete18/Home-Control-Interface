@@ -52,18 +52,14 @@ def StartVR():
     subprocess.call("D:/My Installed Games/Steam Games/steamapps/common/SteamVR/bin/win64/vrstartup.exe")
 
 
-def pc_mode():
-    subprocess.call([f'{cwd}/Batches/PC Mode.bat'])
+def display_switch(mode):
+    subprocess.call([f'{cwd}/Batches/{mode} Mode.bat'])
     time.sleep(10)
-    ahk.run_script(ahk_speakers, blocking=False)
-    print('PC Mode Set')
-
-
-def tv_mode():
-    subprocess.call([f'{cwd}/Batches/TV Mode.bat'])
-    time.sleep(10)
-    ahk.run_script(ahk_tv, blocking=False)
-    print('TV Mode Set')
+    if mode == 'PC':
+        ahk.run_script(ahk_speakers, blocking=False)
+    else:
+        ahk.run_script(ahk_tv, blocking=False)
+    print(f'{mode} Mode Set')
 
 
 # Requires AHK and NirCMD to work
@@ -166,10 +162,10 @@ if CurrentPC == 'Aperture-Two':
                                  font=BaseFont, padx=FPadX, pady=FPadX, width=300, height=400)
     ProjectionFrame.grid(column=1, row=2, padx=FPadX, pady=FPadX)
 
-    SwitchToPCMode = Button(ProjectionFrame, text="PC Mode", command=pc_mode, font=("Arial", 19), width=15)
+    SwitchToPCMode = Button(ProjectionFrame, text="PC Mode", command=partial(display_switch, 'PC'), font=("Arial", 19), width=15)
     SwitchToPCMode.grid(column=0, row=9, padx=10)
 
-    SwitchToTVMode = Button(ProjectionFrame, text="TV Mode", command=tv_mode, font=("Arial", 19), width=15)
+    SwitchToTVMode = Button(ProjectionFrame, text="TV Mode", command=partial(display_switch, 'TV'), font=("Arial", 19), width=15)
     SwitchToTVMode.grid(column=1, row=9, padx=10)
 
     PlugStateCheck(Lighthouse, VRLighthouseButton)
