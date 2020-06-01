@@ -23,7 +23,6 @@ Lighthouse = SmartPlug("192.168.0.196")  # Lighthouse Smart Plug Connection
 def SetScene(SceneName):
     b.run_scene('My Bedroom', SceneName, 1)
 
-
 def SetLightsOff():
     b.set_group('My Bedroom', 'on', False)
 
@@ -68,7 +67,7 @@ def tv_mode():
 
 
 # Requires AHK and NirCMD to work
-ahk = AHK(executable_path=r'C:\Program Files\AutoHotkey\AutoHotkey.exe')
+ahk = AHK(executable_path='C:/Program Files/AutoHotkey/AutoHotkey.exe')
 # These simply name AHK commands that are ran as functions.
 ahk_headphones = 'Run nircmd setdefaultsounddevice "Headphones"'
 ahk_speakers = 'Run nircmd setdefaultsounddevice "Logitech Speakers" 1'
@@ -79,11 +78,6 @@ ahk_SurfaceSpeakers = 'Run nircmd setdefaultsounddevice "Speakers"'
 
 def SetSoundDevice(Device):
     ahk.run_script(Device, blocking=False)
-
-
-# ESC to Close Function - Empty parameter allows this to work
-def close(Event):
-    LightControl.destroy()
 
 
 LightControl = Tk()
@@ -110,10 +104,6 @@ SmartPlugControlFrame.grid(column=1, row=0, padx=FPadX, pady=FPadY)
 AudioSettingsFrame = LabelFrame(LightControl, text='Audio Settings',
                                 bg=Background, font=BaseFont, padx=FPadX, pady=FPadX, width=300, height=390)
 AudioSettingsFrame.grid(column=1, row=1, padx=FPadX, pady=FPadY)
-
-
-# Binding for ESC Close
-LightControl.bind("<Escape>", close)
 
 LightsOn = Button(HueLightControlFrame, text="Lights On",
                   command=partial(SetScene, 'Normal'), font=("Arial", 19), width=15)
