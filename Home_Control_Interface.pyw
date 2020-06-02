@@ -94,43 +94,43 @@ FPadX = 10
 FPadY = 10
 
 HueLightControlFrame = LabelFrame(LightControl, text='Hue Light Control',
-                                  bg=Background, font=BaseFont, padx=FPadX, pady=FPadX, width=2000, height=4000)
-HueLightControlFrame.grid(column=0, rowspan=2, padx=FPadX, pady=FPadY)
+                                  bg=Background, font=BaseFont, padx=FPadX, pady=FPadY, width=2000, height=4000)
+HueLightControlFrame.grid(column=0, rowspan=2, padx=FPadX, pady=FPadY, sticky='nsew')
 
 SmartPlugControlFrame = LabelFrame(LightControl, text='Smart Plug Control',
-                                   bg=Background, font=BaseFont, padx=FPadX, pady=FPadX, width=300, height=390)
-SmartPlugControlFrame.grid(column=1, row=0, padx=FPadX, pady=FPadY)
+                                   bg=Background, font=BaseFont, padx=FPadX, pady=FPadY, width=300, height=390)
+SmartPlugControlFrame.grid(column=1, row=0, padx=FPadX, pady=FPadY, sticky='nsew')
 
 AudioSettingsFrame = LabelFrame(LightControl, text='Audio Settings',
-                                bg=Background, font=BaseFont, padx=FPadX, pady=FPadX, width=300, height=390)
-AudioSettingsFrame.grid(column=1, row=1, padx=FPadX, pady=FPadY)
+                                bg=Background, font=BaseFont, padx=FPadX, pady=FPadY, width=300, height=390)
+AudioSettingsFrame.grid(column=1, row=1, padx=FPadX, pady=FPadY, sticky='nsew')
 
 LightsOn = Button(HueLightControlFrame, text="Lights On",
                   command=partial(SetScene, 'Normal'), font=("Arial", 19), width=15)
-LightsOn.grid(column=0, row=1, padx=10, pady=10)
+LightsOn.grid(column=0, row=1, padx=FPadX, pady=FPadY)
 
 TurnAllOff = Button(HueLightControlFrame, text="Lights Off",
                     command=SetLightsOff, font=("Arial", 19), width=15)
-TurnAllOff.grid(column=1, row=1, padx=10, pady=10)
+TurnAllOff.grid(column=1, row=1, padx=FPadX, pady=FPadY)
 
 BackLight = Button(HueLightControlFrame, text="BackLight Mode",
                    command=partial(SetScene, 'Backlight'), font=("Arial", 19), width=15)
-BackLight.grid(column=0, row=2, padx=10, pady=10)
+BackLight.grid(column=0, row=2, padx=FPadX, pady=FPadY)
 
 DimmedMode = Button(HueLightControlFrame, text="Dimmed Mode",
                     command=partial(SetScene, 'Dimmed'), font=("Arial", 19), width=15)
-DimmedMode.grid(column=1, row=2, padx=10, pady=10)
+DimmedMode.grid(column=1, row=2, padx=FPadX, pady=FPadY)
 
 Nightlight = Button(HueLightControlFrame, text="Night Light",
                     command=partial(SetScene, 'Night light'), font=("Arial", 19), width=15)
-Nightlight.grid(column=0, row=3, padx=10, pady=10)
+Nightlight.grid(column=0, row=3, padx=FPadX, pady=FPadY)
 
-HeaterButton = Button(SmartPlugControlFrame, text="Heater Switch", command=HeaterToggle, font=("Arial", 19), width=15)
-HeaterButton.grid(column=0, row=5, padx=10, pady=10)
+HeaterButton = Button(SmartPlugControlFrame, text="Heater Toggle", command=HeaterToggle, font=("Arial", 19), width=15)
+HeaterButton.grid(column=0, row=5, padx=FPadX, pady=FPadY)
 
 UnsetButton = Button(SmartPlugControlFrame, text="Unset", state='disabled', command=HeaterToggle,
                      font=("Arial", 19), width=15)
-UnsetButton.grid(column=1, row=5, padx=10, pady=10)
+UnsetButton.grid(column=1, row=5, padx=FPadX, pady=FPadY)
 
 
 # Checks Device State and updates the button.
@@ -144,33 +144,33 @@ def PlugStateCheck(Device, DeviceButton):
 if CurrentPC == 'Aperture-Two':
     print(CurrentPC)
     VRSettingsFrame = LabelFrame(LightControl, text='VR Settings',
-                                 bg=Background, font=BaseFont, padx=FPadX, pady=FPadX, width=300, height=400)
-    VRSettingsFrame.grid(column=0, row=2, padx=FPadX, pady=FPadX)
+                                 bg=Background, font=BaseFont, padx=FPadX, pady=FPadY, width=300, height=400)
+    VRSettingsFrame.grid(column=0, row=2, padx=FPadX, pady=FPadX, sticky='nsew')
 
     StartVRButton = Button(VRSettingsFrame, text="Start VR", command=StartVR, font=("Arial", 19), width=15)
-    StartVRButton.grid(column=0, row=9, padx=10)
+    StartVRButton.grid(column=0, row=9, padx=FPadX, pady=FPadY)
 
-    VRLighthouseButton = Button(VRSettingsFrame, text="Lighthouse Switch",
+    VRLighthouseButton = Button(VRSettingsFrame, text="Lighthouse Toggle",
                                 command=LighthouseToggle, font=("Arial", 19), width=15)
-    VRLighthouseButton.grid(column=1, row=9, padx=10, pady=10)
+    VRLighthouseButton.grid(column=1, row=9, padx=FPadX, pady=FPadY)
 
     AudioToSpeakers = Button(AudioSettingsFrame, text="Speaker Audio",
                              command=partial(SetSoundDevice, ahk_speakers), font=("Arial", 19), width=15)
-    AudioToSpeakers.grid(column=0, row=7, padx=10, pady=10)
+    AudioToSpeakers.grid(column=0, row=7, padx=FPadX, pady=FPadY)
 
     AudioToHeadphones = Button(AudioSettingsFrame, text="Headphone Audio",
                                command=partial(SetSoundDevice, ahk_headphones), font=("Arial", 19),width=15)
-    AudioToHeadphones.grid(column=1, row=7, padx=10, pady=10)
+    AudioToHeadphones.grid(column=1, row=7, padx=FPadX, pady=FPadY)
 
     ProjectionFrame = LabelFrame(LightControl, text='Projection', bg=Background,
-                                 font=BaseFont, padx=FPadX, pady=FPadX, width=300, height=400)
-    ProjectionFrame.grid(column=1, row=2, padx=FPadX, pady=FPadX)
+                                 font=BaseFont, padx=FPadX, pady=FPadY, width=300, height=400)
+    ProjectionFrame.grid(column=1, row=2, padx=FPadX, pady=FPadY, sticky='nsew')
 
     SwitchToPCMode = Button(ProjectionFrame, text="PC Mode", command=partial(display_switch, 'PC'), font=("Arial", 19), width=15)
-    SwitchToPCMode.grid(column=0, row=9, padx=10)
+    SwitchToPCMode.grid(column=0, row=9, padx=FPadX, pady=FPadY)
 
     SwitchToTVMode = Button(ProjectionFrame, text="TV Mode", command=partial(display_switch, 'TV'), font=("Arial", 19), width=15)
-    SwitchToTVMode.grid(column=1, row=9, padx=10)
+    SwitchToTVMode.grid(column=1, row=9, padx=FPadX, pady=FPadY)
 
     PlugStateCheck(Lighthouse, VRLighthouseButton)
 
@@ -178,11 +178,11 @@ elif CurrentPC == 'Surface-1':
     print(CurrentPC)
     AudioToSpeakers = Button(AudioSettingsFrame, text="Speaker Audio",
                              command=partial(SetSoundDevice, ahk_SurfaceSpeakers), font=("Arial", 19), width=15)
-    AudioToSpeakers.grid(column=0, row=7, padx=10, pady=10)
+    AudioToSpeakers.grid(column=0, row=7, padx=FPadX, pady=FPadY)
 
     AudioToHeadphones = Button(AudioSettingsFrame, text="Headphone Audio",
                                command=partial(SetSoundDevice, ahk_SurfaceAux), font=("Arial", 19),width=15)
-    AudioToHeadphones.grid(column=1, row=7, padx=10, pady=10)
+    AudioToHeadphones.grid(column=1, row=7, padx=FPadX, pady=FPadY)
 
 
 #  Smart Plugs running through State check function.
