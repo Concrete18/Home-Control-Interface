@@ -3,6 +3,7 @@ from phue import Bridge
 from pyHS100 import SmartPlug
 from ahk import AHK
 from functools import partial
+import threading
 import subprocess
 import socket
 import time
@@ -53,13 +54,16 @@ def StartVR():
 
 
 def display_switch(mode):
-    subprocess.call([f'{cwd}/Batches/{mode} Mode.bat'])
-    time.sleep(10)
-    if mode == 'PC':
-        ahk.run_script(ahk_speakers, blocking=False)
-    else:
-        ahk.run_script(ahk_tv, blocking=False)
-    print(f'{mode} Mode Set')
+    def callback():
+        subprocess.call([f'{cwd}/Batches/{mode} Mode.bat'])
+        time.sleep(10)
+        if mode == 'PC':
+            ahk.run_script(ahk_speakers, blocking=False)
+        else:
+            ahk.run_script(ahk_tv, blocking=False)
+        print(f'{mode} Mode Set')
+    t = threading.Thread(target=callback)
+    t.start()
 
 
 # Requires AHK and NirCMD to work
