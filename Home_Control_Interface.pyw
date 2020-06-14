@@ -94,6 +94,7 @@ while True:
         LightControl.iconbitmap('bulb.ico')
         LightControl.configure(bg='white')
         LightControl.resizable(width=False, height=False)
+        LightControl.geometry("+600+600")
 
 
         # Frames
