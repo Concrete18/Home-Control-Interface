@@ -11,7 +11,6 @@ import os
 import PySimpleGUIWx as sg
 
 tray = sg.SystemTray(menu= ['menu',['Exit']], filename='bulb.ico', tooltip='Home Control Interface')
-tray.ShowMessage('Home Control Interface', 'The tray icon is up and runnning!')
 while True:
     event = tray.Read()
     print(event)
