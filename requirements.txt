@@ -1,0 +1,5 @@
+ahk==0.8.1
+phue==1.1
+pyHS100==0.3.5
+PySimpleGUIWx==0.17.0
+wxPython==4.1.0
