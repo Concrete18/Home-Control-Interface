@@ -13,4 +13,4 @@ Phue and pyHS100 are used for control of Hue bulbs and TP Link Smart Plugs respe
 Tkinter is used for the interface
 PySimpleGUIWx and PythonWx for the task bar icon.
 
-![Image of Home Control Interface](https://i.imgur.com/o0ngbfV.png)
+![Image of Home Control Interface](https://imgur.com/I0KfGmk)
