@@ -8,9 +8,15 @@ The socket module is used to get the computer name so that the interface can dif
 An AHK wrapper is used to make use of NIRCMD. I found no easy way around this as I am already faniliar with NIRCMD using AHK.
 
 ## Module Download Requirements
-Uses AHK and NIRCMD for control of the default audio device. (AHK and NirCMD must be installed seperately)
-Phue and pyHS100 are used for control of Hue bulbs and TP Link Smart Plugs respectively.
-Tkinter is used for the interface
-PySimpleGUIWx and PythonWx for the task bar icon.
+### Run within your normal console for pip.
+```
+pip install -r requirements.txt
+```
+### See requirements.txt for modules and versions used
+
+* Uses AHK and NIRCMD for control of the default audio device. (AHK and NirCMD must be installed seperately)
+* Phue and pyHS100 are used for control of Hue bulbs and TP Link Smart Plugs respectively.
+* Tkinter is used for the interface
+* PySimpleGUIWx and PythonWx for the task bar icon.
 
 ![Image of Home Control Interface](https://i.imgur.com/I0KfGmk.png)
