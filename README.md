@@ -1,4 +1,4 @@
-# Home-Control-Interface
+# Home Control Interface
 Control interface that allows control  of my lights, smart plugs, and PC audio default settings.
 Click Taskbar Icon to bring up the interface and right click the icon and click exit to close script completely.
 
