@@ -16,6 +16,8 @@ while True:
     print(event)
     if event == 'Exit':
         quit()
+    elif event == '__DOUBLE_CLICKEF__':
+        print('Double Clicked')
     elif event == '__ACTIVATED__':
         CurrentPC = socket.gethostname()
         cwd = os.getcwd()
