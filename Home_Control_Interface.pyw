@@ -1,14 +1,14 @@
 from tkinter import Tk, Button, LabelFrame
-from phue import Bridge
 from pyHS100 import SmartPlug
-from ahk import AHK
 from functools import partial
-import threading
+import PySimpleGUIWx as sg
+from phue import Bridge
+from ahk import AHK
 import subprocess
+import threading
 import socket
 import time
 import os
-import PySimpleGUIWx as sg
 
 tray = sg.SystemTray(menu= ['menu',['Exit']], filename='bulb.ico', tooltip='Home Control Interface')
 while True:
