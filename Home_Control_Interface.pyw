@@ -1,4 +1,4 @@
-from tkinter import Tk, Button, LabelFrame
+from tkinter import Tk, Button, LabelFrame, ttk
 from pyHS100 import SmartPlug
 from functools import partial
 import PySimpleGUIWx as sg
