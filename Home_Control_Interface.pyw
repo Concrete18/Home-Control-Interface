@@ -21,7 +21,7 @@ while True:
     elif event == '__ACTIVATED__':
         CurrentPC = socket.gethostname()
         cwd = os.getcwd()
-
+        # TODO Creater try statements for anything with connections that could fail.
         b = Bridge('192.168.0.134')  # Hue Hub Connection
         Heater = SmartPlug("192.168.0.146")  # Heater Smart Plug Connection
         # print(pf(Heater.get_sysinfo()))  # this prints lots of information about the device
@@ -39,21 +39,27 @@ while True:
 
 
         def HeaterToggle():
-            if Heater.get_sysinfo()["relay_state"] == 0:
-                Heater.turn_on()
-                HeaterButton.config(relief='sunken')  # On State
-            else:
-                Heater.turn_off()
-                HeaterButton.config(relief='raised')  # Off State
+            try:
+                if Heater.get_sysinfo()["relay_state"] == 0:
+                    Heater.turn_on()
+                    HeaterButton.config(relief='sunken')  # On State
+                else:
+                    Heater.turn_off()
+                    HeaterButton.config(relief='raised')  # Off State
+            except:
+                print('Heater Error')
 
 
         def LighthouseToggle():
-            if Lighthouse.get_sysinfo()["relay_state"] == 0:
-                Lighthouse.turn_on()
-                VRLighthouseButton.config(relief='sunken')
-            else:
-                Lighthouse.turn_off()
-                VRLighthouseButton.config(relief='raised')
+            try:
+                if Lighthouse.get_sysinfo()["relay_state"] == 0:
+                    Lighthouse.turn_on()
+                    VRLighthouseButton.config(relief='sunken')
+                else:
+                    Lighthouse.turn_off()
+                    VRLighthouseButton.config(relief='raised')
+            except:
+                print('Lighthouse Error')
 
 
         def StartVR():
@@ -146,10 +152,13 @@ while True:
 
         # Checks Device State and updates the button.
         def PlugStateCheck(Device, DeviceButton):
-            if Device.get_sysinfo()["relay_state"] == 1:
-                DeviceButton.config(relief='sunken')  # On State
-            else:
-                DeviceButton.config(relief='raised')  # Off State
+            try:
+                if Device.get_sysinfo()["relay_state"] == 1:
+                    DeviceButton.config(relief='sunken')  # On State
+                else:
+                    DeviceButton.config(relief='raised')  # Off State
+            except:
+                print('Smart Plug Communication Error')
 
 
         if CurrentPC == 'Aperture-Two':
