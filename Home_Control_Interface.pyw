@@ -1,12 +1,14 @@
 from tkinter import Tk, Button, LabelFrame, ttk
 from pyHS100 import SmartPlug
 from functools import partial
+from Set_to_ABC import Change_to_ABC, Check_If_Youtube_TV
 import PySimpleGUIWx as sg
 from phue import Bridge
 from ahk import AHK
 import subprocess
 import threading
 import socket
+import runpy
 import time
 import os
 
@@ -19,9 +21,10 @@ while True:
     elif event == '__DOUBLE_CLICKEF__':
         print('Double Clicked')
     elif event == '__ACTIVATED__':
+        # TODO Add focus activation if window is already open.
         CurrentPC = socket.gethostname()
         cwd = os.getcwd()
-        # TODO Creater try statements for anything with connections that could fail.
+        # TODO Create try statements for anything with connections that could fail.
         b = Bridge('192.168.0.134')  # Hue Hub Connection
         Heater = SmartPlug("192.168.0.146")  # Heater Smart Plug Connection
         # print(pf(Heater.get_sysinfo()))  # this prints lots of information about the device
@@ -70,6 +73,7 @@ while True:
 
 
         def display_switch(mode):
+            '''Switches display to the mode entered as an argument. Works for PC and TV mode.'''
             def callback():
                 subprocess.call([f'{cwd}/Batches/{mode} Mode.bat'])
                 time.sleep(10)
@@ -80,6 +84,11 @@ while True:
                 print(f'{mode} Mode Set')
             t = threading.Thread(target=callback)
             t.start()
+
+
+        def Timed_Power_Control():
+            script = "D:/Google Drive/Coding/Python/Scripts/1-Complete-Projects/Timed-Shutdown/Timed_Shutdown.pyw"
+            os.system(script)
 
 
         # Requires AHK and NirCMD to work
@@ -149,9 +158,26 @@ while True:
                             font=("Arial", 19), width=15)
         UnsetButton.grid(column=1, row=5, padx=FPadX, pady=FPadY)
 
+        Script_Shortcuts = LabelFrame(LightControl, text='Script Shortcuts',
+                                        bg=Background, font=BaseFont, padx=FPadX, pady=FPadY, width=300, height=200)
+        Script_Shortcuts.grid(column=0, row=3, padx=FPadX, pady=FPadY, sticky='nsew')
+
+        RokuButton = Button(Script_Shortcuts, text="Set Roku to ABC", command=Change_to_ABC,
+                    font=("Arial", 19), width=15)
+        RokuButton.grid(column=0, row=0, padx=FPadX, pady=FPadY)
+
+        if Check_If_Youtube_TV():
+            RokuButton.config(relief='sunken')
+        else:
+            RokuButton.config(relief='raised')
+
+        TimerControl = Button(Script_Shortcuts, text="Timed Power Control", command=Timed_Power_Control,
+                    font=("Arial", 19), width=15)
+        TimerControl.grid(column=1, row=0, padx=FPadX, pady=FPadY)
 
         # Checks Device State and updates the button.
         def PlugStateCheck(Device, DeviceButton):
+            '''Gets current state of entered device and updates button relief.'''
             try:
                 if Device.get_sysinfo()["relay_state"] == 1:
                     DeviceButton.config(relief='sunken')  # On State
