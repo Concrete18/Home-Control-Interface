@@ -10,7 +10,8 @@ import time
 import os
 
 Home =  Home_Interface()
-Tray = sg.SystemTray(menu= ['menu',['Exit', 'Lights On', 'Lights Off']], filename='bulb.ico', tooltip='Home Control Interface')
+Tray = sg.SystemTray(menu= ['menu',['Exit', 'Lights On', 'Lights Off']], filename='bulb.ico',
+    tooltip='Home Control Interface')
 Hue_Hub = Bridge('192.168.0.134')  # Hue Hub Connection
 Heater = SmartPlug("192.168.0.146")  # Heater Smart Plug Connection
 # print(pf(Heater.get_sysinfo()))  # this prints lots of information about the device
@@ -104,7 +105,7 @@ while True:
         Check_If_Youtube_TV(RokuButton)
 
 
-        TimerControl = Button(Script_Shortcuts, text="Power Control", command=Home.Timed_Power_Control, 
+        TimerControl = Button(Script_Shortcuts, text="Power Control", command=Home.Timed_Power_Control,
             font=("Arial", 19), width=15)
         TimerControl.grid(column=1, row=0, padx=FPadX, pady=FPadY)
 
@@ -168,5 +169,6 @@ while True:
 
         #  Smart Plugs running through State check function.
         Home.PlugStateCheck(Heater, HeaterButton)
+
 
         LightControl.mainloop()

@@ -7,6 +7,11 @@ import os
 
 class Home_Interface:
 
+    def __init__(self):
+        self.ahk_speakers = 'Run nircmd setdefaultsounddevice "Logitech Speakers" 1'
+        self.ahk_tv = 'Run nircmd setdefaultsounddevice "SONY TV" 1'
+
+
     # Hue Bulb Functions
     def SetScene(self, obj, SceneName):
         '''Set Scene Function.
@@ -72,8 +77,6 @@ class Home_Interface:
         Args = device.'''
         ahk.run_script(device, blocking=False)
 
-    ahk_speakers = 'Run nircmd setdefaultsounddevice "Logitech Speakers" 1'
-    ahk_tv = 'Run nircmd setdefaultsounddevice "SONY TV" 1'
 
     def Display_Switch(self, obj, mode):
         '''Switches display to the mode entered as an argument. Works for PC and TV mode.
@@ -83,9 +86,9 @@ class Home_Interface:
             subprocess.call([f'{os.getcwd()}/Batches/{mode} Mode.bat'])
             time.sleep(10)
             if mode == 'PC':
-                obj.run_script(ahk_speakers, blocking=False)
+                obj.run_script(self.ahk_speakers, blocking=False)
             else:
-                obj.run_script(ahk_tv, blocking=False)
+                obj.run_script(self.ahk_tv, blocking=False)
             print(f'{mode} Mode Set')
         Switch = threading.Thread(target=callback)
         Switch.start()

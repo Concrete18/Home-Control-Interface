@@ -5,9 +5,13 @@ Click Taskbar Icon to bring up the interface and right click the icon and click 
 
 ## Coding Techniques used
 
-I have made use of threading to allow the gui to not freeze while some buttons make use of a time.sleep in order to make sure commands work during projection mode changes.
-The socket module is used to get the computer name so that the interface can differ based on my desktop and laptop. I have no need for many settings on the laptop so it becomes a less featured interface.
-An AHK wrapper is used to make use of NIRCMD. I found no easy way around this as I am already familiar with NIRCMD using AHK.
+* Threading
+* Class Functions
+* NIRCMD
+* Time.Sleep
+* Socket for getting computer names
+* AHK Wrapper
+* Modules for Hue and Smart Plug controls.
 
 ## Module Download Requirements
 
