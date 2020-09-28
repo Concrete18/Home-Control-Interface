@@ -10,7 +10,7 @@ import time
 import os
 
 Home =  Home_Interface()
-Tray = sg.SystemTray(menu= ['menu',['Exit', 'Lights On']], filename='bulb.ico', tooltip='Home Control Interface')
+Tray = sg.SystemTray(menu= ['menu',['Exit', 'Lights On', 'Lights Off']], filename='bulb.ico', tooltip='Home Control Interface')
 Hue_Hub = Bridge('192.168.0.134')  # Hue Hub Connection
 Heater = SmartPlug("192.168.0.146")  # Heater Smart Plug Connection
 # print(pf(Heater.get_sysinfo()))  # this prints lots of information about the device
@@ -25,7 +25,7 @@ while True:
     elif event == 'Lights On':
         Home.SetScene(Hue_Hub, 'Normal')
     elif event == 'Lights Off':
-        Home.SetLightsOff()
+        Home.SetLightsOff(Hue_Hub)
     elif event == '__DOUBLE_CLICKEF__':
         print('Double Clicked')
     elif event == '__ACTIVATED__':
@@ -150,7 +150,9 @@ while True:
                 font=("Arial", 19), width=15)
             SwitchToTVMode.grid(column=1, row=9, padx=FPadX, pady=FPadY)
 
+
             Home.PlugStateCheck(Lighthouse, VRLighthouseButton)
+
 
         elif Current_PC == 'Surface-1':
             print(Current_PC)

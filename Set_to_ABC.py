@@ -28,6 +28,9 @@ def Change_to_ABC():
 
 
 def Check_If_Youtube_TV(obj):
+    '''Set Scene Function.
+
+    Args = obj.'''
     if 'YouTube TV' in str(roku.active_app):
         obj.config(relief='sunken')
     else:
