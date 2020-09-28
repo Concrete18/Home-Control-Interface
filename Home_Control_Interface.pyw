@@ -1,7 +1,8 @@
+from Set_to_ABC import Change_to_ABC, Check_If_Youtube_TV
 from tkinter import Tk, Button, LabelFrame, ttk
+from Home_Class import Home_Interface
 from pyHS100 import SmartPlug
 from functools import partial
-from Set_to_ABC import Change_to_ABC, Check_If_Youtube_TV
 import PySimpleGUIWx as sg
 from phue import Bridge
 from ahk import AHK
@@ -12,17 +13,21 @@ import runpy
 import time
 import os
 
-tray = sg.SystemTray(menu= ['menu',['Exit']], filename='bulb.ico', tooltip='Home Control Interface')
+Home =  Home_Interface()
+
 while True:
     event = tray.Read()
     print(event)
     if event == 'Exit':
-        quit()
+            quit()
+    elif event == 'Lights On':
+        SetScene('Normal')
+    elif event == 'Lights Off':
+        SetLightsOff()
     elif event == '__DOUBLE_CLICKEF__':
         print('Double Clicked')
     elif event == '__ACTIVATED__':
         # TODO Add focus activation if window is already open.
-        CurrentPC = socket.gethostname()
         cwd = os.getcwd()
         # TODO Create try statements for anything with connections that could fail.
         b = Bridge('192.168.0.134')  # Hue Hub Connection
@@ -31,64 +36,6 @@ while True:
 
         Lighthouse = SmartPlug("192.168.0.196")  # Lighthouse Smart Plug Connection
         # print(pf(Lighthouse.get_sysinfo()))  # this prints lots of information about the device
-
-
-        # Hue Bulb Functions
-        def SetScene(SceneName):
-            b.run_scene('My Bedroom', SceneName, 1)
-
-        def SetLightsOff():
-            b.set_group('My Bedroom', 'on', False)
-
-
-        def HeaterToggle():
-            try:
-                if Heater.get_sysinfo()["relay_state"] == 0:
-                    Heater.turn_on()
-                    HeaterButton.config(relief='sunken')  # On State
-                else:
-                    Heater.turn_off()
-                    HeaterButton.config(relief='raised')  # Off State
-            except:
-                print('Heater Error')
-
-
-        def LighthouseToggle():
-            try:
-                if Lighthouse.get_sysinfo()["relay_state"] == 0:
-                    Lighthouse.turn_on()
-                    VRLighthouseButton.config(relief='sunken')
-                else:
-                    Lighthouse.turn_off()
-                    VRLighthouseButton.config(relief='raised')
-            except:
-                print('Lighthouse Error')
-
-
-        def StartVR():
-            if Lighthouse.get_sysinfo()["relay_state"] == 0:
-                Lighthouse.turn_on()
-                VRLighthouseButton.config(relief='sunken')
-            subprocess.call("D:/My Installed Games/Steam Games/steamapps/common/SteamVR/bin/win64/vrstartup.exe")
-
-
-        def display_switch(mode):
-            '''Switches display to the mode entered as an argument. Works for PC and TV mode.'''
-            def callback():
-                subprocess.call([f'{cwd}/Batches/{mode} Mode.bat'])
-                time.sleep(10)
-                if mode == 'PC':
-                    ahk.run_script(ahk_speakers, blocking=False)
-                else:
-                    ahk.run_script(ahk_tv, blocking=False)
-                print(f'{mode} Mode Set')
-            t = threading.Thread(target=callback)
-            t.start()
-
-
-        def Timed_Power_Control():
-            script = "D:/Google Drive/Coding/Python/Scripts/1-Complete-Projects/Timed-Shutdown/Timed_Shutdown.pyw"
-            os.system(script)
 
 
         # Requires AHK and NirCMD to work
@@ -171,7 +118,7 @@ while True:
         else:
             RokuButton.config(relief='raised')
 
-        TimerControl = Button(Script_Shortcuts, text="Timed Power Control", command=Timed_Power_Control,
+        TimerControl = Button(Script_Shortcuts, text="Power Control", command=Timed_Power_Control,
                     font=("Arial", 19), width=15)
         TimerControl.grid(column=1, row=0, padx=FPadX, pady=FPadY)
 
@@ -186,9 +133,9 @@ while True:
             except:
                 print('Smart Plug Communication Error')
 
-
-        if CurrentPC == 'Aperture-Two':
-            print(CurrentPC)
+        Current_PC = socket.gethostbyname()
+        if Current_PC == 'Aperture-Two':
+            print(Current_PC)
             VRSettingsFrame = LabelFrame(LightControl, text='VR Settings',
                                         bg=Background, font=BaseFont, padx=FPadX, pady=FPadY, width=300, height=400)
             VRSettingsFrame.grid(column=0, row=2, padx=FPadX, pady=FPadX, sticky='nsew')
@@ -220,8 +167,8 @@ while True:
 
             PlugStateCheck(Lighthouse, VRLighthouseButton)
 
-        elif CurrentPC == 'Surface-1':
-            print(CurrentPC)
+        elif Current_PC == 'Surface-1':
+            print(Current_PC)
             AudioToSpeakers = Button(AudioSettingsFrame, text="Speaker Audio",
                                     command=partial(SetSoundDevice, ahk_SurfaceSpeakers), font=("Arial", 19), width=15)
             AudioToSpeakers.grid(column=0, row=7, padx=FPadX, pady=FPadY)
