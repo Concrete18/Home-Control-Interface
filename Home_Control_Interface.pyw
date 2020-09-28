@@ -21,9 +21,9 @@ while True:
     if event == 'Exit':
             quit()
     elif event == 'Lights On':
-        SetScene('Normal')
+        Home.SetScene('Normal')
     elif event == 'Lights Off':
-        SetLightsOff()
+        Home.SetLightsOff()
     elif event == '__DOUBLE_CLICKEF__':
         print('Double Clicked')
     elif event == '__ACTIVATED__':
@@ -79,29 +79,29 @@ while True:
         AudioSettingsFrame.grid(column=1, row=1, padx=FPadX, pady=FPadY, sticky='nsew')
 
         LightsOn = Button(HueLightControlFrame, text="Lights On",
-                        command=partial(SetScene, 'Normal'), font=("Arial", 19), width=15)
+                        command=partial(Home.SetScene(), 'Normal'), font=("Arial", 19), width=15)
         LightsOn.grid(column=0, row=1, padx=FPadX, pady=FPadY)
 
         TurnAllOff = Button(HueLightControlFrame, text="Lights Off",
-                            command=SetLightsOff, font=("Arial", 19), width=15)
+                            command=Home.SetLightsOff(), font=("Arial", 19), width=15)
         TurnAllOff.grid(column=1, row=1, padx=FPadX, pady=FPadY)
 
         BackLight = Button(HueLightControlFrame, text="BackLight Mode",
-                        command=partial(SetScene, 'Backlight'), font=("Arial", 19), width=15)
+                        command=partial(Home.SetScene(), 'Backlight'), font=("Arial", 19), width=15)
         BackLight.grid(column=0, row=2, padx=FPadX, pady=FPadY)
 
         DimmedMode = Button(HueLightControlFrame, text="Dimmed Mode",
-                            command=partial(SetScene, 'Dimmed'), font=("Arial", 19), width=15)
+                            command=partial(Home.SetScene(), 'Dimmed'), font=("Arial", 19), width=15)
         DimmedMode.grid(column=1, row=2, padx=FPadX, pady=FPadY)
 
         Nightlight = Button(HueLightControlFrame, text="Night Light",
-                            command=partial(SetScene, 'Night light'), font=("Arial", 19), width=15)
+                            command=partial(Home.SetScene(), 'Night light'), font=("Arial", 19), width=15)
         Nightlight.grid(column=0, row=3, padx=FPadX, pady=FPadY)
 
-        HeaterButton = Button(SmartPlugControlFrame, text="Heater Toggle", command=HeaterToggle, font=("Arial", 19), width=15)
+        HeaterButton = Button(SmartPlugControlFrame, text="Heater Toggle", command=Home.HeaterToggle, font=("Arial", 19), width=15)
         HeaterButton.grid(column=0, row=5, padx=FPadX, pady=FPadY)
 
-        UnsetButton = Button(SmartPlugControlFrame, text="Unset", state='disabled', command=HeaterToggle,
+        UnsetButton = Button(SmartPlugControlFrame, text="Unset", state='disabled', command=Home.HeaterToggle,
                             font=("Arial", 19), width=15)
         UnsetButton.grid(column=1, row=5, padx=FPadX, pady=FPadY)
 
@@ -118,7 +118,7 @@ while True:
         else:
             RokuButton.config(relief='raised')
 
-        TimerControl = Button(Script_Shortcuts, text="Power Control", command=Timed_Power_Control,
+        TimerControl = Button(Script_Shortcuts, text="Power Control", command=Home.Timed_Power_Control,
                     font=("Arial", 19), width=15)
         TimerControl.grid(column=1, row=0, padx=FPadX, pady=FPadY)
 
