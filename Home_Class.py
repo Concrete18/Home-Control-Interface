@@ -1,6 +1,4 @@
-from pyHS100 import SmartPlug
 import PySimpleGUIWx as sg
-from phue import Bridge
 from ahk import AHK
 import subprocess
 import threading
@@ -48,19 +46,16 @@ class Home_Interface:
             button.config(relief='sunken')
         subprocess.call("D:/My Installed Games/Steam Games/steamapps/common/SteamVR/bin/win64/vrstartup.exe")
 
+
     # Requires AHK and NirCMD to work
     ahk = AHK(executable_path='C:/Program Files/AutoHotkey/AutoHotkey.exe')
-    # These simply name AHK commands that are ran as functions.
-    ahk_headphones = 'Run nircmd setdefaultsounddevice "Headphones"'
-    ahk_speakers = 'Run nircmd setdefaultsounddevice "Logitech Speakers" 1'
-    ahk_tv = 'Run nircmd setdefaultsounddevice "SONY TV" 1'
-    ahk_SurfaceAux = 'Run nircmd setdefaultsounddevice "Aux"'
-    ahk_SurfaceSpeakers = 'Run nircmd setdefaultsounddevice "Speakers"'
 
 
     def SetSoundDevice(self, device):
         ahk.run_script(device, blocking=False)
 
+    ahk_speakers = 'Run nircmd setdefaultsounddevice "Logitech Speakers" 1'
+    ahk_tv = 'Run nircmd setdefaultsounddevice "SONY TV" 1'
 
     def Display_Switch(self, obj, mode):
         '''Switches display to the mode entered as an argument. Works for PC and TV mode.'''
@@ -79,6 +74,7 @@ class Home_Interface:
     def Timed_Power_Control(self):
         script = "D:/Google Drive/Coding/Python/Scripts/1-Complete-Projects/Timed-Shutdown/Timed_Shutdown.pyw"
         os.system(script)
+
 
     # Checks Device State and updates the button.
     def PlugStateCheck(self, device, button):

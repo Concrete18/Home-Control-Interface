@@ -5,10 +5,7 @@ from pyHS100 import SmartPlug
 import PySimpleGUIWx as sg
 from phue import Bridge
 from ahk import AHK
-import subprocess
-import threading
 import socket
-import runpy
 import time
 import os
 
@@ -42,28 +39,12 @@ while True:
         Lighthouse = SmartPlug("192.168.0.196")  # Lighthouse Smart Plug Connection
         # print(pf(Lighthouse.get_sysinfo()))  # this prints lots of information about the device
 
-
-        # Requires AHK and NirCMD to work
-        ahk = AHK(executable_path='C:/Program Files/AutoHotkey/AutoHotkey.exe')
-        # These simply name AHK commands that are ran as functions.
-        ahk_headphones = 'Run nircmd setdefaultsounddevice "Headphones"'
-        ahk_speakers = 'Run nircmd setdefaultsounddevice "Logitech Speakers" 1'
-        ahk_tv = 'Run nircmd setdefaultsounddevice "SONY TV" 1'
-        ahk_SurfaceAux = 'Run nircmd setdefaultsounddevice "Aux"'
-        ahk_SurfaceSpeakers = 'Run nircmd setdefaultsounddevice "Speakers"'
-
-
-        def SetSoundDevice(Device):
-            ahk.run_script(Device, blocking=False)
-
-
         LightControl = Tk()
         LightControl.title("Home Control Interface")
         LightControl.iconbitmap('bulb.ico')
         LightControl.configure(bg='white')
         LightControl.resizable(width=False, height=False)
         LightControl.geometry("+600+600")
-
 
         # Frames
         Background = 'white'
@@ -123,14 +104,20 @@ while True:
         Check_If_Youtube_TV(RokuButton)
 
 
-        TimerControl = Button(Script_Shortcuts, text="Power Control", command=Home.Timed_Power_Control,
-                    font=("Arial", 19), width=15)
+        TimerControl = Button(Script_Shortcuts, text="Power Control", command=Home.Timed_Power_Control, 
+            font=("Arial", 19), width=15)
         TimerControl.grid(column=1, row=0, padx=FPadX, pady=FPadY)
 
+        # These simply name AHK commands that are ran as functions.
+        ahk_headphones = 'Run nircmd setdefaultsounddevice "Headphones"'
+        ahk_speakers = 'Run nircmd setdefaultsounddevice "Logitech Speakers" 1'
+        ahk_SurfaceAux = 'Run nircmd setdefaultsounddevice "Aux"'
+        ahk_SurfaceSpeakers = 'Run nircmd setdefaultsounddevice "Speakers"'
 
         Current_PC = socket.gethostname()
         if Current_PC == 'Aperture-Two':
             print(Current_PC)
+
             VRSettingsFrame = LabelFrame(LightControl, text='VR Settings', bg=Background, font=BaseFont,
                 padx=FPadX, pady=FPadY, width=300, height=400)
             VRSettingsFrame.grid(column=0, row=2, padx=FPadX, pady=FPadX, sticky='nsew')
@@ -144,11 +131,11 @@ while True:
             VRLighthouseButton.grid(column=1, row=9, padx=FPadX, pady=FPadY)
 
             AudioToSpeakers = Button(AudioSettingsFrame, text="Speaker Audio",
-                command=lambda: SetSoundDevice(ahk_speakers), font=("Arial", 19), width=15)
+                command=lambda: Home.SetSoundDevice(ahk_speakers), font=("Arial", 19), width=15)
             AudioToSpeakers.grid(column=0, row=7, padx=FPadX, pady=FPadY)
 
             AudioToHeadphones = Button(AudioSettingsFrame, text="Headphone Audio",
-                command=lambda: SetSoundDevice(ahk_headphones), font=("Arial", 19),width=15)
+                command=lambda: Home.SetSoundDevice(ahk_headphones), font=("Arial", 19),width=15)
             AudioToHeadphones.grid(column=1, row=7, padx=FPadX, pady=FPadY)
 
             ProjectionFrame = LabelFrame(LightControl, text='Projection', bg=Background, font=BaseFont,
@@ -167,12 +154,13 @@ while True:
 
         elif Current_PC == 'Surface-1':
             print(Current_PC)
+
             AudioToSpeakers = Button(AudioSettingsFrame, text="Speaker Audio",
-                command=lambda: SetSoundDevice(ahk_SurfaceSpeakers), font=("Arial", 19), width=15)
+                command=lambda: Home.SetSoundDevice(ahk_SurfaceSpeakers), font=("Arial", 19), width=15)
             AudioToSpeakers.grid(column=0, row=7, padx=FPadX, pady=FPadY)
 
             AudioToHeadphones = Button(AudioSettingsFrame, text="Headphone Audio",
-                command=lambda: SetSoundDevice(ahk_SurfaceAux), font=("Arial", 19),width=15)
+                command=lambda: Home.SetSoundDevice(ahk_SurfaceAux), font=("Arial", 19),width=15)
             AudioToHeadphones.grid(column=1, row=7, padx=FPadX, pady=FPadY)
 
 
