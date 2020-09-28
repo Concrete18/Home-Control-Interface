@@ -8,14 +8,6 @@ import time
 import os
 
 class Home_Interface:
-    def __init__(self):
-        tray = sg.SystemTray(menu= ['menu',['Exit', 'Lights On']], filename='bulb.ico', tooltip='Home Control Interface')
-        b = Bridge('192.168.0.134')  # Hue Hub Connection
-        Heater = SmartPlug("192.168.0.146")  # Heater Smart Plug Connection
-        # print(pf(Heater.get_sysinfo()))  # this prints lots of information about the device
-        Lighthouse = SmartPlug("192.168.0.196")  # Lighthouse Smart Plug Connection
-        # print(pf(Lighthouse.get_sysinfo()))  # this prints lots of information about the device
-
 
     # Hue Bulb Functions
     def SetScene(self, obj, SceneName):
@@ -69,7 +61,8 @@ class Home_Interface:
     def SetSoundDevice(self, device):
         ahk.run_script(device, blocking=False)
 
-    def Display_Switch(self, mode, obj):
+
+    def Display_Switch(self, obj, mode):
         '''Switches display to the mode entered as an argument. Works for PC and TV mode.'''
         def callback():
             subprocess.call([f'{os.getcwd()}/Batches/{mode} Mode.bat'])
@@ -79,10 +72,21 @@ class Home_Interface:
             else:
                 obj.run_script(ahk_tv, blocking=False)
             print(f'{mode} Mode Set')
-        t = threading.Thread(target=callback)
-        t.start()
+        Switch = threading.Thread(target=callback)
+        Switch.start()
 
 
     def Timed_Power_Control(self):
         script = "D:/Google Drive/Coding/Python/Scripts/1-Complete-Projects/Timed-Shutdown/Timed_Shutdown.pyw"
         os.system(script)
+
+    # Checks Device State and updates the button.
+    def PlugStateCheck(self, device, button):
+        '''Gets current state of entered device and updates button relief.'''
+        try:
+            if device.get_sysinfo()["relay_state"] == 1:
+                button.config(relief='sunken')  # On State
+            else:
+                button.config(relief='raised')  # Off State
+        except:
+            print('Smart Plug Communication Error')

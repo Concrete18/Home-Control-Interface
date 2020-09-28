@@ -6,7 +6,6 @@ import os
 roku = Roku('192.168.0.131')
 
 
-
 def Change_to_ABC():
     '''Switches display to the mode entered as an argument. Works for PC and TV mode.'''
     def Callback():
@@ -24,19 +23,12 @@ def Change_to_ABC():
             print('Success')
         else:
             input('Roku Failed to switch to ABC on Youtube TV.')
-    t = threading.Thread(target=Callback)
-    t.start()
+    ABC = threading.Thread(target=Callback)
+    ABC.start()
 
 
-def Check_If_Youtube_TV():
+def Check_If_Youtube_TV(obj):
     if 'YouTube TV' in str(roku.active_app):
-        return True
+        obj.config(relief='sunken')
     else:
-        return False
-
-
-if __name__ == '__main__':
-    try:
-        Change_to_ABC()
-    except:
-        input('Connection Failed. Check IP Address.')
+        obj.config(relief='raised')
