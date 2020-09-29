@@ -99,8 +99,7 @@ class Home_Interface:
 
         Currently WIP.'''
         script = "D:/Google Drive/Coding/Python/Scripts/1-Complete-Projects/Timed-Shutdown/Timed_Shutdown.pyw"
-        # FIXME Make script run on press.
-        subprocess.call('python', script)
+        subprocess.call(["python", script])
 
 
     # Checks Device State and updates the button.
