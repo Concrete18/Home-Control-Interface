@@ -7,90 +7,90 @@ import os
 
 class Home_Interface:
 
-    def __init__(self):
+    def __init__(self, hue, heater, lighthouse):
+        self.Hue_Hub = hue
+        self.Heater = heater
+        self.Lighthouse = lighthouse
+        self.ahk = AHK(executable_path='C:/Program Files/AutoHotkey/AutoHotkey.exe')
         self.ahk_speakers = 'Run nircmd setdefaultsounddevice "Logitech Speakers" 1'
         self.ahk_tv = 'Run nircmd setdefaultsounddevice "SONY TV" 1'
 
 
     # Hue Bulb Functions
-    def SetScene(self, obj, SceneName):
+    def SetScene(self, SceneName):
         '''Set Scene Function.
 
-        Args = obj, SceneName.'''
-        obj.run_scene('My Bedroom', SceneName, 1)
+        Args = SceneName.'''
+        self.Hue_Hub.run_scene('My Bedroom', SceneName, 1)
 
 
-    def SetLightsOff(self, obj):
-        '''Set Scene Function.
-
-        Args = obj.'''
-        obj.set_group('My Bedroom', 'on', False)
+    def SetLightsOff(self):
+        '''Turn Lights off function.'''
+        self.Hue_Hub.set_group('My Bedroom', 'on', False)
 
 
-    def HeaterToggle(self, obj, button):
+    def HeaterToggle(self, button):
         '''Heater Toggle Function.
 
-        Args = obj, button.'''
+        Args = button.'''
         try:
-            if obj.get_sysinfo()["relay_state"] == 0:
-                obj.turn_on()
+            if self.Heater.get_sysinfo()["relay_state"] == 0:
+                self.Heater.turn_on()
                 button.config(relief='sunken')  # On State
             else:
-                obj.turn_off()
+                self.Heater.turn_off()
                 button.config(relief='raised')  # Off State
         except:
             print('Heater Error')
 
 
-    def LighthouseToggle(self, obj, button):
+    def LighthouseToggle(self, button):
         '''Lighthouse Toggle Function.
 
-        Args = obj, button.'''
+        Args = button.'''
         try:
-            if obj.get_sysinfo()["relay_state"] == 0:
-                obj.turn_on()
+            if self.Lighthouse.get_sysinfo()["relay_state"] == 0:
+                self.Lighthouse.turn_on()
                 button.config(relief='sunken')
             else:
-                obj.turn_off()
+                self.Lighthouse.turn_off()
                 button.config(relief='raised')
         except:
             print('Lighthouse Error')
 
 
-    def StartVR(self, obj, button):
+    def StartVR(self, button):
         '''Start VR Function.
 
-        Args = obj, button.'''
-        if obj.get_sysinfo()["relay_state"] == 0:
-            obj.turn_on()
+        Args = button.'''
+        if self.Lighthouse.get_sysinfo()["relay_state"] == 0:
+            self.Lighthouse.turn_on()
             button.config(relief='sunken')
         subprocess.call("D:/My Installed Games/Steam Games/steamapps/common/SteamVR/bin/win64/vrstartup.exe")
 
 
     # Requires AHK and NirCMD to work
-    ahk = AHK(executable_path='C:/Program Files/AutoHotkey/AutoHotkey.exe')
-
-
     def SetSoundDevice(self, device):
         '''Set Sound Device Function.
 
         Args = device.'''
-        ahk.run_script(device, blocking=False)
+        self.ahk.run_script(device, blocking=False)
 
 
-    def Display_Switch(self, obj, mode):
+    def Display_Switch(self, mode):
         '''Switches display to the mode entered as an argument. Works for PC and TV mode.
 
-        Args = obj, mode.'''
-        def callback():
+        Args = mode.'''
+        # FIXME Display Switch
+        def callback(mode):
             subprocess.call([f'{os.getcwd()}/Batches/{mode} Mode.bat'])
             time.sleep(10)
             if mode == 'PC':
-                obj.run_script(self.ahk_speakers, blocking=False)
+                self.ahk.run_script(self.ahk_speakers, blocking=False)
             else:
-                obj.run_script(self.ahk_tv, blocking=False)
+                self.ahk.run_script(self.ahk_tv, blocking=False)
             print(f'{mode} Mode Set')
-        Switch = threading.Thread(target=callback)
+        Switch = threading.Thread(target=callback(mode))
         Switch.start()
 
 
@@ -99,7 +99,8 @@ class Home_Interface:
 
         Currently WIP.'''
         script = "D:/Google Drive/Coding/Python/Scripts/1-Complete-Projects/Timed-Shutdown/Timed_Shutdown.pyw"
-        os.system(script)
+        # FIXME Make script run on press.
+        subprocess.call('python', script)
 
 
     # Checks Device State and updates the button.

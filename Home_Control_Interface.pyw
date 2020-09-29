@@ -9,36 +9,31 @@ import socket
 import time
 import os
 
-Home =  Home_Interface()
-Tray = sg.SystemTray(menu= ['menu',['Exit', 'Lights On', 'Lights Off']], filename='bulb.ico',
-    tooltip='Home Control Interface')
-Hue_Hub = Bridge('192.168.0.134')  # Hue Hub Connection
-Heater = SmartPlug("192.168.0.146")  # Heater Smart Plug Connection
-# print(pf(Heater.get_sysinfo()))  # this prints lots of information about the device
-Lighthouse = SmartPlug("192.168.0.196")  # Lighthouse Smart Plug Connection
-# print(pf(Lighthouse.get_sysinfo()))  # this prints lots of information about the device
+Tray = sg.SystemTray(
+    menu= ['menu',['Lights On', 'Lights Off', 'Exit']],
+    filename='bulb.ico',
+    tooltip='Home Control Interface'
+    )
+
+Hue_Hub = Bridge('192.168.0.134')
+Heater = SmartPlug('192.168.0.146')
+Lighthouse = SmartPlug('192.168.0.196')
+Home =  Home_Interface(Hue_Hub, Heater, Lighthouse)
 
 while True:
     event = Tray.Read()
     print(event)
     if event == 'Exit':
             quit()
+    # TODO Add more taskbar items with loop.
     elif event == 'Lights On':
-        Home.SetScene(Hue_Hub, 'Normal')
+        Home.SetScene(Home.Hue_Hub, 'Normal')
     elif event == 'Lights Off':
-        Home.SetLightsOff(Hue_Hub)
+        Home.SetLightsOff(Home.Hue_Hub)
     elif event == '__DOUBLE_CLICKEF__':
         print('Double Clicked')
     elif event == '__ACTIVATED__':
         # TODO Add focus activation if window is already open.
-        cwd = os.getcwd()
-        # TODO Create try statements for anything with connections that could fail.
-        Hue_Hub = Bridge('192.168.0.134')  # Hue Hub Connection
-        Heater = SmartPlug("192.168.0.146")  # Heater Smart Plug Connection
-        # print(pf(Heater.get_sysinfo()))  # this prints lots of information about the device
-
-        Lighthouse = SmartPlug("192.168.0.196")  # Lighthouse Smart Plug Connection
-        # print(pf(Lighthouse.get_sysinfo()))  # this prints lots of information about the device
 
         LightControl = Tk()
         LightControl.title("Home Control Interface")
@@ -65,32 +60,32 @@ while True:
             padx=FPadX, pady=FPadY, width=300, height=390)
         AudioSettingsFrame.grid(column=1, row=1, padx=FPadX, pady=FPadY, sticky='nsew')
 
-        LightsOn = Button(HueLightControlFrame, text="Lights On", command=lambda: Home.SetScene(Hue_Hub,  'Normal'),
+        LightsOn = Button(HueLightControlFrame, text="Lights On", command=lambda: Home.SetScene('Normal'),
             font=("Arial", 19), width=15)
         LightsOn.grid(column=0, row=1, padx=FPadX, pady=FPadY)
 
-        TurnAllOff = Button(HueLightControlFrame, text="Lights Off",command=lambda: Home.SetLightsOff(Hue_Hub),
+        TurnAllOff = Button(HueLightControlFrame, text="Lights Off",command=lambda: Home.SetLightsOff(),
             font=("Arial", 19), width=15)
         TurnAllOff.grid(column=1, row=1, padx=FPadX, pady=FPadY)
 
         BackLight = Button(HueLightControlFrame, text="BackLight Mode",
-            command=lambda: Home.SetScene(Hue_Hub, 'Backlight'), font=("Arial", 19), width=15)
+            command=lambda: Home.SetScene('Backlight'), font=("Arial", 19), width=15)
         BackLight.grid(column=0, row=2, padx=FPadX, pady=FPadY)
 
-        DimmedMode = Button(HueLightControlFrame, text="Dimmed Mode",command=lambda: Home.SetScene(Hue_Hub, 'Dimmed'),
+        DimmedMode = Button(HueLightControlFrame, text="Dimmed Mode",command=lambda: Home.SetScene('Dimmed'),
             font=("Arial", 19), width=15)
         DimmedMode.grid(column=1, row=2, padx=FPadX, pady=FPadY)
 
         Nightlight = Button(HueLightControlFrame, text="Night Light",
-            command=lambda: Home.SetScene(Hue_Hub, 'Night light'), font=("Arial", 19), width=15)
+            command=lambda: Home.SetScene('Night light'), font=("Arial", 19), width=15)
         Nightlight.grid(column=0, row=3, padx=FPadX, pady=FPadY)
 
         HeaterButton = Button(SmartPlugControlFrame, text="Heater Toggle",
-            command=lambda: Home.HeaterToggle(Heater, HeaterButton), font=("Arial", 19), width=15)
+            command=lambda: Home.HeaterToggle(HeaterButton), font=("Arial", 19), width=15)
         HeaterButton.grid(column=0, row=5, padx=FPadX, pady=FPadY)
 
         UnsetButton = Button(SmartPlugControlFrame, text="Unset", state='disabled',
-            command=lambda: Home.HeaterToggle(Heater), font=("Arial", 19), width=15)
+            command='ph', font=("Arial", 19), width=15)
         UnsetButton.grid(column=1, row=5, padx=FPadX, pady=FPadY)
 
         Script_Shortcuts = LabelFrame(LightControl, text='Script Shortcuts', bg=Background, font=BaseFont,
@@ -124,11 +119,11 @@ while True:
             VRSettingsFrame.grid(column=0, row=2, padx=FPadX, pady=FPadX, sticky='nsew')
 
             StartVRButton = Button(VRSettingsFrame, text="Start VR",
-                command=lambda: Home.StartVR(Lighthouse, VRLighthouseButton), font=("Arial", 19), width=15)
+                command=lambda: Home.StartVR(VRLighthouseButton), font=("Arial", 19), width=15)
             StartVRButton.grid(column=0, row=9, padx=FPadX, pady=FPadY)
 
             VRLighthouseButton = Button(VRSettingsFrame, text="Lighthouse Toggle",
-                command=lambda: Home.LighthouseToggle(Lighthouse, VRLighthouseButton), font=("Arial", 19), width=15)
+                command=lambda: Home.LighthouseToggle(VRLighthouseButton), font=("Arial", 19), width=15)
             VRLighthouseButton.grid(column=1, row=9, padx=FPadX, pady=FPadY)
 
             AudioToSpeakers = Button(AudioSettingsFrame, text="Speaker Audio",
