@@ -10,7 +10,7 @@ import time
 import os
 
 Tray = sg.SystemTray(
-    menu= ['menu',['Lights On', 'Lights Off', 'Exit']],
+    menu= ['menu',['Lights On', 'Backlight', 'Lights Off', 'Exit']],
     filename='bulb.ico',
     tooltip='Home Control Interface'
     )
@@ -27,9 +27,11 @@ while True:
             quit()
     # TODO Add more taskbar items with loop.
     elif event == 'Lights On':
-        Home.SetScene(Home.Hue_Hub, 'Normal')
+        Home.SetScene('Normal')
+    elif event == 'Backlight':
+        Home.SetScene('Backlight')
     elif event == 'Lights Off':
-        Home.SetLightsOff(Home.Hue_Hub)
+        Home.SetLightsOff()
     elif event == '__DOUBLE_CLICKEF__':
         print('Double Clicked')
     elif event == '__ACTIVATED__':
