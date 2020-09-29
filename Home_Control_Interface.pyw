@@ -38,11 +38,15 @@ while True:
         # TODO Add focus activation if window is already open.
 
         LightControl = Tk()
+        window_width = 1108
+        window_height = 580
+        width = int((LightControl.winfo_screenwidth()-window_width)/2)
+        height = int((LightControl.winfo_screenheight()-window_height)/2)
+        LightControl.geometry(f'{window_width}x{window_height}+{width}+{height}')
         LightControl.title("Home Control Interface")
         LightControl.iconbitmap('bulb.ico')
         LightControl.configure(bg='white')
         LightControl.resizable(width=False, height=False)
-        LightControl.geometry("+600+600")
 
         # Frames
         Background = 'white'
