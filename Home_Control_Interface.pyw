@@ -20,12 +20,12 @@ Heater = SmartPlug('192.168.0.146')
 Lighthouse = SmartPlug('192.168.0.196')
 Home =  Home_Interface(Hue_Hub, Heater, Lighthouse)
 
+# Load but hide interface with .withdraw then show it on button press using .update
 while True:
     event = Tray.Read()
     print(event)
     if event == 'Exit':
             quit()
-    # TODO Add more taskbar items with loop.
     elif event == 'Lights On':
         Home.SetScene('Normal')
     elif event == 'Backlight':
@@ -35,8 +35,7 @@ while True:
     elif event == '__DOUBLE_CLICKEF__':
         print('Double Clicked')
     elif event == '__ACTIVATED__':
-        # TODO Add focus activation if window is already open.
-
+        # LightControl.BringToFront()
         LightControl = Tk()
         window_width = 1108
         window_height = 580

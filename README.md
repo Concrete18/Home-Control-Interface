@@ -3,15 +3,21 @@
 Control interface that allows control  of my lights, smart plugs, and PC audio default settings.
 Click Taskbar Icon to bring up the interface and right click the icon and click exit to close script completely.
 
+## Features
+
+* Power Control Settings via another app that I made but did not include in this repo.
+[Timed Shutdown and Sleep](https://github.com/Concrete18/Timed-Shutdown-Sleep)
+
 ## Coding Techniques used
 
 * Threading
 * Class Functions
-* NIRCMD
 * Time.Sleep
+* Screen and window calculations to perfectly center interface
 * Socket for getting computer names
+* NIRCMD
 * AHK Wrapper
-* Modules for Hue and Smart Plug controls.
+* Modules for Hue and Smart Plug controls
 
 ## Module Download Requirements
 
