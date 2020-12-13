@@ -1,9 +1,8 @@
 from roku import Roku
 import threading
 import time
-import os
 
-roku = Roku('192.168.0.131')
+roku = Roku('192.168.0.132')
 
 
 def Change_to_ABC():
