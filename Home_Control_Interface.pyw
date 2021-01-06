@@ -1,13 +1,14 @@
-from Set_to_ABC import Change_to_ABC, Check_If_Youtube_TV
+from Set_to_ABC import Change_to_ABC
 from tkinter import Tk, Button, LabelFrame, messagebox
 from pyHS100 import SmartPlug
+from pyHS100 import Discover  # unused normally
 import PySimpleGUIWx as sg
 from phue import Bridge
+from time import sleep
 from ahk import AHK
 import subprocess
 import threading
 import socket
-import time
 import os
 
 
@@ -15,69 +16,65 @@ class Home:
 
 
     def __init__(self):
+        self.check_pi_status = 1
+        self.cwd = os.getcwd()
+        self.window_title = 'Home Control Interface'
         # device init
         self.Hue_Hub = Bridge('192.168.0.134')
         self.Heater = SmartPlug('192.168.0.146')
         self.Lighthouse = SmartPlug('192.168.0.197')
+        self.ras_pi = '192.168.0.116'
+        self.update_delay = 1000
         # AHK
         self.ahk = AHK(executable_path='C:/Program Files/AutoHotkey/AutoHotkey.exe')
-        self.ahk_speakers = 'Run nircmd setdefaultsounddevice "Logitech Speakers" 1'
-        self.ahk_tv = 'Run nircmd setdefaultsounddevice "SONY TV" 1'
-        self.ahk_headphones = 'Run nircmd setdefaultsounddevice "Headphones"'
-        self.ahk_SurfaceAux = 'Run nircmd setdefaultsounddevice "Aux"'
-        self.ahk_SurfaceSpeakers = 'Run nircmd setdefaultsounddevice "Speakers"'
+        # Python Scripts
+        self.switch_to_abc = "D:/Google Drive/Coding/Python/Scripts/1-Complete-Projects/Roku-Control/Instant_Set_to_ABC.py"
+        self.timed_shutdown = "D:/Google Drive/Coding/Python/Scripts/1-Complete-Projects/Timed-Shutdown/Timed_Shutdown.pyw"
 
 
-    # Hue Bulb Functions
+    def check_pi(self):
+        '''
+        Checks if Pi is up.
+        '''
+        def callback():
+            sleep(10)
+            if self.check_pi_status == 1:
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                result = sock.connect_ex((self.ras_pi, 22))
+                if result == 0:
+                    print("Raspberry Pi is running")
+                else:
+                    messagebox.showwarning(title=self.window_title, message=f'Raspberry Pi is not online.')
+        pi_thread = threading.Thread(target=callback)
+        pi_thread.start()
+
+
+    # Hue Bulb Functions`
     def set_scene(self, scene_name):
         '''
         Set Scene Function.
-
-        Args = scene_name
         '''
         self.Hue_Hub.run_scene('My Bedroom', scene_name, 1)
 
 
-    def set_lights_off(self):
+    def smart_plug_toggle(self, name, device, button):
         '''
-        Turn Lights off function.
-        '''
-        self.Hue_Hub.set_group('My Bedroom', 'on', False)
-
-
-    def heater_toggle(self):
-        '''
-        Heater Toggle Function.
+        Smart Plug Toggle Function.
         '''
         try:
-            if self.Heater.get_sysinfo()["relay_state"] == 0:
-                self.Heater.turn_on()
-                self.HeaterButton.config(relief='sunken')  # On State
+            if device.get_sysinfo()["relay_state"] == 0:
+                device.turn_on()
+                button.config(relief='sunken')  # On State
             else:
-                self.Heater.turn_off()
-                self.HeaterButton.config(relief='raised')  # Off State
+                device.turn_off()
+                button.config(relief='raised')  # Off State
         except:
-            print('Heater Error')
-
-
-    def lighthouse_toggle(self):
-        '''
-        Lighthouse Toggle Function.
-        '''
-        try:
-            if self.Lighthouse.get_sysinfo()["relay_state"] == 0:
-                self.Lighthouse.turn_on()
-                self.VRLighthouseButton.config(relief='sunken')
-            else:
-                self.Lighthouse.turn_off()
-                self.VRLighthouseButton.config(relief='raised')
-        except:
-            print('Lighthouse Error')
+            print(f'{name} Error')
 
 
     def start_vr(self):
         '''
-        Start VR Function.
+        Runs SteamVR shortcut and turns on lighthouse plugged into smart plug for tracking if it is off.
         '''
         if self.Lighthouse.get_sysinfo()["relay_state"] == 0:
             self.Lighthouse.turn_on()
@@ -85,90 +82,70 @@ class Home:
         subprocess.call("D:/My Installed Games/Steam Games/steamapps/common/SteamVR/bin/win64/vrstartup.exe")
 
 
-    # Requires AHK and NirCMD to work
     def set_sound_device(self, device):
         '''
-        Set Sound Device Function.
-
-        Args = device.
+        Set Sound Device Function. Requires AHK and NirCMD to work.
         '''
-        self.ahk.run_script(device, blocking=False)
+        self.ahk.run_script(f'Run nircmd setdefaultsounddevice "{device}" 1', blocking=False)
 
 
     def display_switch(self, mode):
         '''
         Switches display to the mode entered as an argument. Works for PC and TV mode.
-
-        Args = mode.
         '''
         # FIXME Display Switch
         def callback(mode):
             subprocess.call([f'{os.getcwd()}/Batches/{mode} Mode.bat'])
-            time.sleep(10)
+            sleep(10)
             if mode == 'PC':
-                self.ahk.run_script(self.ahk_speakers, blocking=False)
+                self.set_sound_device('Logitech Speakers')
             else:
-                self.ahk.run_script(self.ahk_tv, blocking=False)
+                self.display_switch('SONY TV')
             print(f'{mode} Mode Set')
-        Switch = threading.Thread(target=callback(mode))
+        Switch = threading.Thread(target=callback, args=(mode,))
         Switch.start()
 
 
-    def timed_power_control(self):
+    def python_script_runner(self, script):
         '''
-        Runs Timed Power Control Function.
+        Runs Timed Power Control Function after switching the directory to it's location.
         '''
-        script = "D:/Google Drive/Coding/Python/Scripts/1-Complete-Projects/Timed-Shutdown/Timed_Shutdown.pyw"
-        subprocess.call(["python", script])
-
-
-    # Checks Device State and updates the button.
-    def plug_state_check(self):
-        '''
-        Gets current state of entered device and updates button relief.
-        '''
-        buttons = {
-        self.Heater:self.HeaterButton,
-        self.Lighthouse:self.VRLighthouseButton
-        }
-        for device, button in buttons.items():
-            try:
-                if device.get_sysinfo()["relay_state"] == 1:
-                    button.config(relief='sunken')  # On State
-                else:
-                    button.config(relief='raised')  # Off State
-            except Exception  as e:
-                print('Smart Plug', e)
-                messagebox.showwarning(title='Game Save Manager', message=f'Error communicating with {device}.')
+        os.chdir(os.path.split(script)[0])
+        subprocess.call(["python", script], shell=False)
+        os.chdir(self.cwd)
 
 
     def create_window(self):
-        Home_Interface = Tk()
+        '''
+        Creates Home Control Interface.
+        '''
+        self.Home_Interface = Tk()
         window_width = 1108
         window_height = 580
-        width = int((Home_Interface.winfo_screenwidth()-window_width)/2)
-        height = int((Home_Interface.winfo_screenheight()-window_height)/2)
-        Home_Interface.geometry(f'{window_width}x{window_height}+{width}+{height}')
-        Home_Interface.title("Home Control Interface")
-        Home_Interface.iconbitmap('bulb.ico')
-        Home_Interface.configure(bg='white')
-        Home_Interface.resizable(width=False, height=False)
+        width = int((self.Home_Interface.winfo_screenwidth()-window_width)/2)
+        height = int((self.Home_Interface.winfo_screenheight()-window_height)/2)
+        self.Home_Interface.geometry(f'{window_width}x{window_height}+{width}+{height}')
+        self.Home_Interface.title(self.window_title)
+        self.Home_Interface.iconbitmap(self.Home_Interface, 'bulb.ico')
+        self.Home_Interface.configure(bg='white')
+        self.Home_Interface.resizable(width=False, height=False)
 
+        # default values for interface
         background = 'white'
         base_font = ('Arial Bold', 20)
         pad_x = 10
         pad_y = 10
 
         # Frames
-        HueLightControlFrame = LabelFrame(Home_Interface, text='Hue Light Control', bg=background,
+        HueLightControlFrame = LabelFrame(self.Home_Interface, text='Hue Light Control', bg=background,
             font=base_font, padx=pad_x, pady=pad_y, width=2000, height=4000)
         HueLightControlFrame.grid(column=0, rowspan=2, padx=pad_x, pady=pad_y, sticky='nsew')
 
-        SmartPlugControlFrame = LabelFrame(Home_Interface, text='Smart Plug Control', bg=background,
+        SmartPlugControlFrame = LabelFrame(self.Home_Interface, text='Smart Plug Control', bg=background,
             font=base_font, padx=pad_x, pady=pad_y, width=300, height=390)
         SmartPlugControlFrame.grid(column=1, row=0, padx=pad_x, pady=pad_y, sticky='nsew')
 
-        AudioSettingsFrame = LabelFrame(Home_Interface, text='Audio Settings', bg=background, font=base_font,
+        AudioSettingsFrame = LabelFrame(self.Home_Interface, text='Audio Settings', bg=background, font=base_font,
             padx=pad_x, pady=pad_y, width=300, height=390)
         AudioSettingsFrame.grid(column=1, row=1, padx=pad_x, pady=pad_y, sticky='nsew')
 
@@ -177,8 +154,8 @@ class Home:
             font=("Arial", 19), width=15)
         LightsOn.grid(column=0, row=1, padx=pad_x, pady=pad_y)
 
-        TurnAllOff = Button(HueLightControlFrame, text="Lights Off",command=lambda: self.set_lights_off(),
-            font=("Arial", 19), width=15)
+        TurnAllOff = Button(HueLightControlFrame, text="Lights Off",
+            command=lambda: self.Hue_Hub.set_group('My Bedroom', 'on', False), font=("Arial", 19), width=15)
         TurnAllOff.grid(column=1, row=1, padx=pad_x, pady=pad_y)
 
         BackLight = Button(HueLightControlFrame, text="BackLight Mode",
@@ -193,49 +170,50 @@ class Home:
             command=lambda: self.set_scene('Night light'), font=("Arial", 19), width=15)
         Nightlight.grid(column=0, row=3, padx=pad_x, pady=pad_y)
 
-        self.HeaterButton = Button(SmartPlugControlFrame, text="Heater Toggle",
-            command=lambda: self.heater_toggle(), font=("Arial", 19), width=15)
+        self.HeaterButton = Button(SmartPlugControlFrame, text="Heater Toggle", font=("Arial", 19), width=15,
+            command=lambda: self.smart_plug_toggle('Heater', self.Heater, self.HeaterButton))
         self.HeaterButton.grid(column=0, row=5, padx=pad_x, pady=pad_y)
 
         UnsetButton = Button(SmartPlugControlFrame, text="Unset", state='disabled',
             command='ph', font=("Arial", 19), width=15)
         UnsetButton.grid(column=1, row=5, padx=pad_x, pady=pad_y)
 
-        Script_Shortcuts = LabelFrame(Home_Interface, text='Script Shortcuts', bg=background, font=base_font,
+        Script_Shortcuts = LabelFrame(self.Home_Interface, text='Script Shortcuts', bg=background, font=base_font,
             padx=pad_x, pady=pad_y, width=300, height=200)
         Script_Shortcuts.grid(column=0, row=3, padx=pad_x, pady=pad_y, sticky='nsew')
 
-        RokuButton = Button(Script_Shortcuts, text="Set Roku to ABC", command=Change_to_ABC, font=("Arial", 19),
-            width=15)
+        RokuButton = Button(Script_Shortcuts, text="Set Roku to ABC",
+            command=lambda: self.python_script_runner(self.switch_to_abc), font=("Arial", 19), width=15)
         RokuButton.grid(column=0, row=0, padx=pad_x, pady=pad_y)
 
-        TimerControl = Button(Script_Shortcuts, text="Power Control", command=self.timed_power_control,
-            font=("Arial", 19), width=15)
+        TimerControl = Button(Script_Shortcuts, text="Power Control",
+            command=lambda: self.python_script_runner(self.timed_shutdown), font=("Arial", 19), width=15)
         TimerControl.grid(column=1, row=0, padx=pad_x, pady=pad_y)
 
         current_pc = socket.gethostname()
         if current_pc == 'Aperture-Two':
-            VRSettingsFrame = LabelFrame(Home_Interface, text='VR Settings', bg=background, font=base_font,
+            VRSettingsFrame = LabelFrame(self.Home_Interface, text='VR Settings', bg=background, font=base_font,
                 padx=pad_x, pady=pad_y, width=300, height=400)
             VRSettingsFrame.grid(column=0, row=2, padx=pad_x, pady=pad_x, sticky='nsew')
 
             StartVRButton = Button(VRSettingsFrame, text="Start VR",
-                command=lambda: self.start_vr(VRLighthouseButton), font=("Arial", 19), width=15)
+                command=self.start_vr, font=("Arial", 19), width=15)
             StartVRButton.grid(column=0, row=9, padx=pad_x, pady=pad_y)
 
             self.VRLighthouseButton = Button(VRSettingsFrame, text="Lighthouse Toggle",
-                command=lambda: self.lighthouse_toggle(), font=("Arial", 19), width=15)
+                command=lambda: self.smart_plug_toggle('Lighthouse', self.Lighthouse, self.VRLighthouseButton),
+                font=("Arial", 19), width=15)
             self.VRLighthouseButton.grid(column=1, row=9, padx=pad_x, pady=pad_y)
 
             AudioToSpeakers = Button(AudioSettingsFrame, text="Speaker Audio",
-                command=lambda: self.set_sound_device(self.ahk_speakers), font=("Arial", 19), width=15)
+                command=lambda: self.set_sound_device('Logitech Speakers'), font=("Arial", 19), width=15)
             AudioToSpeakers.grid(column=0, row=7, padx=pad_x, pady=pad_y)
 
             AudioToHeadphones = Button(AudioSettingsFrame, text="Headphone Audio",
-                command=lambda: self.set_sound_device(self.ahk_headphones), font=("Arial", 19),width=15)
+                command=lambda: self.set_sound_device('Headphones'), font=("Arial", 19),width=15)
             AudioToHeadphones.grid(column=1, row=7, padx=pad_x, pady=pad_y)
 
-            ProjectionFrame = LabelFrame(Home_Interface, text='Projection', bg=background, font=base_font,
+            ProjectionFrame = LabelFrame(self.Home_Interface, text='Projection', bg=background, font=base_font,
                 padx=pad_x, pady=pad_y, width=300, height=400)
             ProjectionFrame.grid(column=1, row=2, padx=pad_x, pady=pad_y, sticky='nsew')
 
@@ -243,29 +221,54 @@ class Home:
                 font=("Arial", 19), width=15)
             SwitchToPCMode.grid(column=0, row=9, padx=pad_x, pady=pad_y)
 
-            SwitchToTVMode = Button(ProjectionFrame, text="TV Mode", command=lambda: self.display_switch('TV'),
+            SwitchToTVMode = Button(ProjectionFrame, text="TV Mode", command=lambda: self.display_switch('SONY TV'),
                 font=("Arial", 19), width=15)
             SwitchToTVMode.grid(column=1, row=9, padx=pad_x, pady=pad_y)
 
 
         elif current_pc == 'Surface-1':
             AudioToSpeakers = Button(AudioSettingsFrame, text="Speaker Audio",
-                command=lambda: self.set_sound_device(self.ahk_SurfaceSpeakers), font=("Arial", 19), width=15)
+                command=lambda: self.set_sound_device('Speakers'), font=("Arial", 19), width=15)
             AudioToSpeakers.grid(column=0, row=7, padx=pad_x, pady=pad_y)
 
             AudioToHeadphones = Button(AudioSettingsFrame, text="Headphone Audio",
-                command=lambda: self.set_sound_device(self.ahk_SurfaceAux), font=("Arial", 19),width=15)
+                command=lambda: self.set_sound_device('Aux'), font=("Arial", 19),width=15)
             AudioToHeadphones.grid(column=1, row=7, padx=pad_x, pady=pad_y)
-
 
         #  Smart Plugs running through state check function.
         self.plug_state_check()
 
+        self.Home_Interface.mainloop()
 
-        Home_Interface.mainloop()
+
+    def plug_state_check(self):
+        '''
+        Gets current state of entered device and updates button relief.
+        '''
+        def callback():
+            buttons = {
+            self.Heater:self.HeaterButton,
+            # self.Lighthouse:self.VRLighthouseButton
+            }
+            for device, button in buttons.items():
+                try:
+                    if device.get_sysinfo()["relay_state"] == 1:
+                        button.config(relief='sunken')  # On State
+                    else:
+                        button.config(relief='raised')  # Off State
+                except Exception as e:
+                    print('Smart Plug', e)
+                    messagebox.showwarning(title='Game Save Manager', message=f'Error communicating with {device}.')
+        pi_thread = threading.Thread(target=callback)
+        pi_thread.start()
+        self.Home_Interface.after(1000, self.plug_state_check)
 
 
     def create_tray(self):
+        '''
+        Creates the system tray.
+        Clicking the Lightbulb ones the interface and right clicking it shows quick lighting control options.
+        '''
         Tray = sg.SystemTray(
             menu=['menu',[
             'Lights On',
@@ -286,12 +289,12 @@ class Home:
             elif event == 'Backlight':
                 self.set_scene('Backlight')
             elif event == 'Lights Off':
-                self.set_lights_off()
+                self.Hue_Hub.set_group('My Bedroom', 'on', False)
             elif event == '__ACTIVATED__':
                 self.create_window()
 
 
 if __name__ == "__main__":
     Home =  Home()
-
+    Home.check_pi()
     Home.create_tray()
