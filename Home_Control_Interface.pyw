@@ -1,4 +1,3 @@
-from Set_to_ABC import Change_to_ABC
 from tkinter import Tk, Button, LabelFrame, messagebox
 from pyHS100 import SmartPlug
 from pyHS100 import Discover  # unused normally
@@ -17,14 +16,19 @@ class Home:
 
     def __init__(self):
         self.check_pi_status = 1
-        self.cwd = os.getcwd()
+        self.script_dir = os.path.dirname(os.path.abspath(__file__))
+        if os.getcwd() != self.script_dir:
+            print('Current Working Directory is Different.')
+            os.chdir(self.script_dir)
         self.window_title = 'Home Control Interface'
+        self.update_delay = 1000
         # device init
         self.Hue_Hub = Bridge('192.168.0.134')
         self.Heater = SmartPlug('192.168.0.146')
+        self.heater_plugged_in = 1
         self.Lighthouse = SmartPlug('192.168.0.197')
-        self.ras_pi = '192.168.0.116'
-        self.update_delay = 1000
+        self.lighthouse_plugged_in = 0
+        self.ras_pi = '192.168.0.114'
         # AHK
         self.ahk = AHK(executable_path='C:/Program Files/AutoHotkey/AutoHotkey.exe')
         # Python Scripts
@@ -52,14 +56,15 @@ class Home:
     # Hue Bulb Functions`
     def set_scene(self, scene_name):
         '''
-        Set Scene Function.
+        Set Hue scene function.
         '''
         self.Hue_Hub.run_scene('My Bedroom', scene_name, 1)
 
 
-    def smart_plug_toggle(self, name, device, button):
+    @staticmethod
+    def smart_plug_toggle(name, device, button):
         '''
-        Smart Plug Toggle Function.
+        Smart Plug toggle function.
         '''
         try:
             if device.get_sysinfo()["relay_state"] == 0:
@@ -76,10 +81,12 @@ class Home:
         '''
         Runs SteamVR shortcut and turns on lighthouse plugged into smart plug for tracking if it is off.
         '''
-        if self.Lighthouse.get_sysinfo()["relay_state"] == 0:
+        if self.lighthouse_plugged_in and self.Lighthouse.get_sysinfo()["relay_state"] == 0:
             self.Lighthouse.turn_on()
-            self.VRLighthouseButton.config(relief='sunken')
-        subprocess.call("D:/My Installed Games/Steam Games/steamapps/common/SteamVR/bin/win64/vrstartup.exe")
+            self.LighthouseButton.config(relief='sunken')
+        steamvr_path = "D:/My Installed Games/Steam Games/steamapps/common/SteamVR/bin/win64/vrstartup.exe"
+        if os.path.isfile(steamvr_path):
+            subprocess.call(steamvr_path)
 
 
     def set_sound_device(self, device):
@@ -93,9 +100,8 @@ class Home:
         '''
         Switches display to the mode entered as an argument. Works for PC and TV mode.
         '''
-        # FIXME Display Switch
         def callback(mode):
-            subprocess.call([f'{os.getcwd()}/Batches/{mode} Mode.bat'])
+            subprocess.call([f'{self.script_dir}/Batches/{mode} Mode.bat'])
             sleep(10)
             if mode == 'PC':
                 self.set_sound_device('Logitech Speakers')
@@ -112,7 +118,7 @@ class Home:
         '''
         os.chdir(os.path.split(script)[0])
         subprocess.call(["python", script], shell=False)
-        os.chdir(self.cwd)
+        os.chdir(self.script_dir)
 
 
     def create_window(self):
@@ -171,7 +177,7 @@ class Home:
         Nightlight.grid(column=0, row=3, padx=pad_x, pady=pad_y)
 
         self.HeaterButton = Button(SmartPlugControlFrame, text="Heater Toggle", font=("Arial", 19), width=15,
-            command=lambda: self.smart_plug_toggle('Heater', self.Heater, self.HeaterButton))
+            command=lambda: self.smart_plug_toggle('Heater', self.Heater, self.HeaterButton), state='disabled',)
         self.HeaterButton.grid(column=0, row=5, padx=pad_x, pady=pad_y)
 
         UnsetButton = Button(SmartPlugControlFrame, text="Unset", state='disabled',
@@ -192,18 +198,17 @@ class Home:
 
         current_pc = socket.gethostname()
         if current_pc == 'Aperture-Two':
-            VRSettingsFrame = LabelFrame(self.Home_Interface, text='VR Settings', bg=background, font=base_font,
+            VRFrame = LabelFrame(self.Home_Interface, text='VR Settings', bg=background, font=base_font,
                 padx=pad_x, pady=pad_y, width=300, height=400)
-            VRSettingsFrame.grid(column=0, row=2, padx=pad_x, pady=pad_x, sticky='nsew')
+            VRFrame.grid(column=0, row=2, padx=pad_x, pady=pad_x, sticky='nsew')
 
-            StartVRButton = Button(VRSettingsFrame, text="Start VR",
+            StartVRButton = Button(VRFrame, text="Start VR",
                 command=self.start_vr, font=("Arial", 19), width=15)
             StartVRButton.grid(column=0, row=9, padx=pad_x, pady=pad_y)
 
-            self.VRLighthouseButton = Button(VRSettingsFrame, text="Lighthouse Toggle",
-                command=lambda: self.smart_plug_toggle('Lighthouse', self.Lighthouse, self.VRLighthouseButton),
-                font=("Arial", 19), width=15)
-            self.VRLighthouseButton.grid(column=1, row=9, padx=pad_x, pady=pad_y)
+            self.LighthouseButton = Button(VRFrame, text="Lighthouse Toggle", state='disabled', font=("Arial", 19),
+                command=lambda: self.smart_plug_toggle('Lighthouse', self.Lighthouse, self.LighthouseButton), width=15,)
+            self.LighthouseButton.grid(column=1, row=9, padx=pad_x, pady=pad_y)
 
             AudioToSpeakers = Button(AudioSettingsFrame, text="Speaker Audio",
                 command=lambda: self.set_sound_device('Logitech Speakers'), font=("Arial", 19), width=15)
@@ -224,8 +229,6 @@ class Home:
             SwitchToTVMode = Button(ProjectionFrame, text="TV Mode", command=lambda: self.display_switch('SONY TV'),
                 font=("Arial", 19), width=15)
             SwitchToTVMode.grid(column=1, row=9, padx=pad_x, pady=pad_y)
-
-
         elif current_pc == 'Surface-1':
             AudioToSpeakers = Button(AudioSettingsFrame, text="Speaker Audio",
                 command=lambda: self.set_sound_device('Speakers'), font=("Arial", 19), width=15)
@@ -234,6 +237,8 @@ class Home:
             AudioToHeadphones = Button(AudioSettingsFrame, text="Headphone Audio",
                 command=lambda: self.set_sound_device('Aux'), font=("Arial", 19),width=15)
             AudioToHeadphones.grid(column=1, row=7, padx=pad_x, pady=pad_y)
+        else:
+            messagebox.showwarning(title=self.window_title, message='Current PC is unknown.')
 
         #  Smart Plugs running through state check function.
         self.plug_state_check()
@@ -246,10 +251,13 @@ class Home:
         Gets current state of entered device and updates button relief.
         '''
         def callback():
-            buttons = {
-            self.Heater:self.HeaterButton,
-            # self.Lighthouse:self.VRLighthouseButton
-            }
+            buttons = {}
+            if self.lighthouse_plugged_in:
+                buttons[self.Lighthouse] = self.LighthouseButton
+                self.LighthouseButton.config(state='normal')
+            if self.heater_plugged_in:
+                buttons[self.Heater] = self.HeaterButton
+                self.HeaterButton.config(state='normal')
             for device, button in buttons.items():
                 try:
                     if device.get_sysinfo()["relay_state"] == 1:
@@ -258,7 +266,7 @@ class Home:
                         button.config(relief='raised')  # Off State
                 except Exception as e:
                     print('Smart Plug', e)
-                    messagebox.showwarning(title='Game Save Manager', message=f'Error communicating with {device}.')
+                    messagebox.showwarning(title=self.window_title, message=f'Error communicating with {device}.')
         pi_thread = threading.Thread(target=callback)
         pi_thread.start()
         self.Home_Interface.after(1000, self.plug_state_check)
@@ -266,8 +274,8 @@ class Home:
 
     def create_tray(self):
         '''
-        Creates the system tray.
-        Clicking the Lightbulb ones the interface and right clicking it shows quick lighting control options.
+        Creates the system tray. Clicking the Lightbulb ones the interface and right clicking it shows quick
+        lighting control options.
         '''
         Tray = sg.SystemTray(
             menu=['menu',[
