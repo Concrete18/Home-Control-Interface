@@ -1,4 +1,4 @@
-from tkinter import Tk, Button, LabelFrame, messagebox
+from tkinter import Tk, Button, Label, LabelFrame, messagebox, LEFT
 from pyHS100 import SmartPlug
 from pyHS100 import Discover  # unused normally
 import PySimpleGUIWx as sg
@@ -9,19 +9,22 @@ import subprocess
 import threading
 import socket
 import os
+import time
+import psutil
+import math
 
 
 class Home:
 
 
     def __init__(self):
-        self.check_pi_status = 1
+        # sets script directory
         self.script_dir = os.path.dirname(os.path.abspath(__file__))
         if os.getcwd() != self.script_dir:
             print('Current Working Directory is Different.')
             os.chdir(self.script_dir)
+        # defaults
         self.window_title = 'Home Control Interface'
-        self.update_delay = 1000
         # device init
         self.Hue_Hub = Bridge('192.168.0.134')
         self.Heater = SmartPlug('192.168.0.146')
@@ -29,9 +32,10 @@ class Home:
         self.Lighthouse = SmartPlug('192.168.0.197')
         self.lighthouse_plugged_in = 0
         self.ras_pi = '192.168.0.114'
-        # AHK
+        self.check_pi_status = 1
+        # ahk
         self.ahk = AHK(executable_path='C:/Program Files/AutoHotkey/AutoHotkey.exe')
-        # Python Scripts
+        # python scripts
         self.switch_to_abc = "D:/Google Drive/Coding/Python/Scripts/1-Complete-Projects/Roku-Control/Instant_Set_to_ABC.py"
         self.timed_shutdown = "D:/Google Drive/Coding/Python/Scripts/1-Complete-Projects/Timed-Shutdown/Timed_Shutdown.pyw"
 
@@ -53,7 +57,32 @@ class Home:
         pi_thread.start()
 
 
-    # Hue Bulb Functions`
+    @staticmethod
+    def convert_size(size_bytes):
+        if size_bytes == 0:
+            return "0B"
+        size_name = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
+        i = int(math.floor(math.log(size_bytes, 1024)))
+        p = math.pow(1024, i)
+        s = round(size_bytes / p, 2)
+        return "%s %s" % (s, size_name[i])
+
+
+    def check_computer_status(self):
+        def callback():
+            virt_mem = psutil.virtual_memory()
+            boot_time = round(int(time.time() - psutil.boot_time())/60/60, 2)
+            self.ComputerInfo.config(text=f'''
+            Uptime: {boot_time} Hours
+            CPU Temps:
+            Virtual Memory: {self.convert_size(virt_mem.available)}/{self.convert_size(virt_mem.total)}
+            ''')
+        pi_thread = threading.Thread(target=callback)
+        pi_thread.start()
+        self.Home_Interface.after(5000, self.check_computer_status)
+
+
+    # Hue Bulb Functions
     def set_scene(self, scene_name):
         '''
         Set Hue scene function.
@@ -126,11 +155,11 @@ class Home:
         Creates Home Control Interface.
         '''
         self.Home_Interface = Tk()
-        window_width = 1108
-        window_height = 580
-        width = int((self.Home_Interface.winfo_screenwidth()-window_width)/2)
-        height = int((self.Home_Interface.winfo_screenheight()-window_height)/2)
-        self.Home_Interface.geometry(f'{window_width}x{window_height}+{width}+{height}')
+        # window_width = 1108
+        # window_height = 580
+        # width = int((self.Home_Interface.winfo_screenwidth()-window_width)/2)
+        # height = int((self.Home_Interface.winfo_screenheight()-window_height)/2)
+        # self.Home_Interface.geometry(f'{window_width}x{window_height}+{width}+{height}')
         self.Home_Interface.title(self.window_title)
         self.Home_Interface.iconbitmap(self.Home_Interface, 'bulb.ico')
         self.Home_Interface.configure(bg='white')
@@ -139,14 +168,25 @@ class Home:
         # default values for interface
         background = 'white'
         base_font = ('Arial Bold', 20)
+        small_base_font = ('Arial Bold', 15)
         pad_x = 10
         pad_y = 10
 
         # Frames
-        HueLightControlFrame = LabelFrame(self.Home_Interface, text='Hue Light Control', bg=background,
-            font=base_font, padx=pad_x, pady=pad_y, width=2000, height=4000)
-        HueLightControlFrame.grid(column=0, rowspan=2, padx=pad_x, pady=pad_y, sticky='nsew')
+        # Left Frames
+        ComputerStatus = LabelFrame(self.Home_Interface, text='Computer Status', bg=background,
+            font=base_font, padx=pad_x, pady=pad_y, width=300, height=200)
+        ComputerStatus.grid(column=0, row=0, padx=pad_x, pady=pad_y, sticky='nsew')
 
+        HueLightControlFrame = LabelFrame(self.Home_Interface, text='Hue Light Control', bg=background,
+            font=base_font, padx=pad_x, pady=pad_y, width=300, height=400)
+        HueLightControlFrame.grid(column=0, row=1, rowspan=2, padx=pad_x, pady=pad_y, sticky='nsew')
+
+        Script_Shortcuts = LabelFrame(self.Home_Interface, text='Script Shortcuts', bg=background, font=base_font,
+            padx=pad_x, pady=pad_y, width=300, height=200)
+        Script_Shortcuts.grid(column=0, row=3, padx=pad_x, pady=pad_y, sticky='nsew')
+
+        # Right Frames
         SmartPlugControlFrame = LabelFrame(self.Home_Interface, text='Smart Plug Control', bg=background,
             font=base_font, padx=pad_x, pady=pad_y, width=300, height=390)
         SmartPlugControlFrame.grid(column=1, row=0, padx=pad_x, pady=pad_y, sticky='nsew')
@@ -154,6 +194,19 @@ class Home:
         AudioSettingsFrame = LabelFrame(self.Home_Interface, text='Audio Settings', bg=background, font=base_font,
             padx=pad_x, pady=pad_y, width=300, height=390)
         AudioSettingsFrame.grid(column=1, row=1, padx=pad_x, pady=pad_y, sticky='nsew')
+
+        ProjectionFrame = LabelFrame(self.Home_Interface, text='Projection', bg=background, font=base_font,
+            padx=pad_x, pady=pad_y, width=300, height=400)
+        ProjectionFrame.grid(column=1, row=2, padx=pad_x, pady=pad_y, sticky='nsew')
+
+        VRFrame = LabelFrame(self.Home_Interface, text='VR Settings', bg=background, font=base_font,
+            padx=pad_x, pady=pad_y, width=300, height=400)
+        VRFrame.grid(column=1, row=3, padx=pad_x, pady=pad_x, sticky='nsew')
+
+        # Labels
+        self.ComputerInfo = Label(ComputerStatus, text='Computer Status', bg=background, justify=LEFT,
+            font=small_base_font, padx=pad_x, pady=pad_y)
+        self.ComputerInfo.grid(column=0, row=0, padx=pad_x, pady=pad_y, sticky='nsew')
 
         # Buttons
         LightsOn = Button(HueLightControlFrame, text="Lights On", command=lambda: self.set_scene('Normal'),
@@ -184,10 +237,6 @@ class Home:
             command='ph', font=("Arial", 19), width=15)
         UnsetButton.grid(column=1, row=5, padx=pad_x, pady=pad_y)
 
-        Script_Shortcuts = LabelFrame(self.Home_Interface, text='Script Shortcuts', bg=background, font=base_font,
-            padx=pad_x, pady=pad_y, width=300, height=200)
-        Script_Shortcuts.grid(column=0, row=3, padx=pad_x, pady=pad_y, sticky='nsew')
-
         RokuButton = Button(Script_Shortcuts, text="Set Roku to ABC",
             command=lambda: self.python_script_runner(self.switch_to_abc), font=("Arial", 19), width=15)
         RokuButton.grid(column=0, row=0, padx=pad_x, pady=pad_y)
@@ -198,10 +247,6 @@ class Home:
 
         current_pc = socket.gethostname()
         if current_pc == 'Aperture-Two':
-            VRFrame = LabelFrame(self.Home_Interface, text='VR Settings', bg=background, font=base_font,
-                padx=pad_x, pady=pad_y, width=300, height=400)
-            VRFrame.grid(column=0, row=2, padx=pad_x, pady=pad_x, sticky='nsew')
-
             StartVRButton = Button(VRFrame, text="Start VR",
                 command=self.start_vr, font=("Arial", 19), width=15)
             StartVRButton.grid(column=0, row=9, padx=pad_x, pady=pad_y)
@@ -217,10 +262,6 @@ class Home:
             AudioToHeadphones = Button(AudioSettingsFrame, text="Headphone Audio",
                 command=lambda: self.set_sound_device('Headphones'), font=("Arial", 19),width=15)
             AudioToHeadphones.grid(column=1, row=7, padx=pad_x, pady=pad_y)
-
-            ProjectionFrame = LabelFrame(self.Home_Interface, text='Projection', bg=background, font=base_font,
-                padx=pad_x, pady=pad_y, width=300, height=400)
-            ProjectionFrame.grid(column=1, row=2, padx=pad_x, pady=pad_y, sticky='nsew')
 
             SwitchToPCMode = Button(ProjectionFrame, text="PC Mode", command=lambda: self.display_switch('PC'),
                 font=("Arial", 19), width=15)
@@ -242,6 +283,7 @@ class Home:
 
         #  Smart Plugs running through state check function.
         self.plug_state_check()
+        self.check_computer_status()
 
         self.Home_Interface.mainloop()
 
@@ -269,7 +311,6 @@ class Home:
                     messagebox.showwarning(title=self.window_title, message=f'Error communicating with {device}.')
         pi_thread = threading.Thread(target=callback)
         pi_thread.start()
-        self.Home_Interface.after(1000, self.plug_state_check)
 
 
     def create_tray(self):
