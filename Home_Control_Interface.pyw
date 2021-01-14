@@ -1,4 +1,5 @@
 from tkinter import Tk, Button, Label, LabelFrame, messagebox, LEFT
+import tkinter as tk
 from pyHS100 import SmartPlug
 from pyHS100 import Discover  # unused normally
 import PySimpleGUIWx as sg
@@ -8,10 +9,10 @@ from ahk import AHK
 import subprocess
 import threading
 import socket
-import os
-import time
 import psutil
 import math
+import time
+import os
 
 
 class Home:
@@ -38,6 +39,9 @@ class Home:
         # python scripts
         self.switch_to_abc = "D:/Google Drive/Coding/Python/Scripts/1-Complete-Projects/Roku-Control/Instant_Set_to_ABC.py"
         self.timed_shutdown = "D:/Google Drive/Coding/Python/Scripts/1-Complete-Projects/Timed-Shutdown/Timed_Shutdown.pyw"
+        # Status vars
+        self.rpi_status = 'Checking Status'
+        self.boot_time = psutil.boot_time()
 
 
     def check_pi(self):
@@ -45,38 +49,49 @@ class Home:
         Checks if Pi is up.
         '''
         def callback():
-            sleep(10)
             if self.check_pi_status == 1:
                 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
                 result = sock.connect_ex((self.ras_pi, 22))
                 if result == 0:
-                    print("Raspberry Pi is running")
+                    self.rpi_status = 'Online'
                 else:
+                    self.rpi_status = 'Offline'
                     messagebox.showwarning(title=self.window_title, message=f'Raspberry Pi is not online.')
         pi_thread = threading.Thread(target=callback)
         pi_thread.start()
 
 
     @staticmethod
-    def convert_size(size_bytes):
-        if size_bytes == 0:
-            return "0B"
-        size_name = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
-        i = int(math.floor(math.log(size_bytes, 1024)))
-        p = math.pow(1024, i)
-        s = round(size_bytes / p, 2)
-        return "%s %s" % (s, size_name[i])
+    def readable_time_since(seconds):
+        '''
+        Returns time since based on seconds argument in the unit of time that makes the most sense
+        rounded to 1 decimal place.
+        '''
+        if seconds < (60 * 60):  # seconds in minute * minutes in hour
+            minutes = round(seconds / 60, 1)  # seconds in a minute
+            return f' {minutes} minutes'
+        elif seconds < (60 * 60 * 24):  # seconds in minute * minutes in hour * hours in a day
+            hours = round(seconds / (60 * 60), 1)  # seconds in minute * minutes in hour
+            return f' {hours} hours'
+        else:
+            days = round(seconds / 86400, 1)  # seconds in minute * minutes in hour * hours in a day
+            return f' {days} days'
 
 
     def check_computer_status(self):
         def callback():
-            virt_mem = psutil.virtual_memory()
-            boot_time = round(int(time.time() - psutil.boot_time())/60/60, 2)
-            self.ComputerInfo.config(text=f'''
-            Uptime: {boot_time} Hours
-            CPU Temps:
-            Virtual Memory: {self.convert_size(virt_mem.available)}/{self.convert_size(virt_mem.total)}
-            ''')
+            mem = psutil.virtual_memory()
+            virt_mem = f'{round(mem.available/1024/1024/1024, 1)}/{round(mem.total/1024/1024/1024, 1)}'
+            uptime = self.readable_time_since(int(time.time() - self.boot_time))
+            cpu_temp = 'WIP'
+            gpu_temp = 'WIP'
+            self.status_data.set(f'''
+                Uptime: {uptime}
+                CPU Temp: {cpu_temp}
+                GPU Temp: {gpu_temp}
+                Memory: {virt_mem} GB
+                Pi Status: {self.rpi_status}
+                ''')
         pi_thread = threading.Thread(target=callback)
         pi_thread.start()
         self.Home_Interface.after(5000, self.check_computer_status)
@@ -143,7 +158,7 @@ class Home:
 
     def python_script_runner(self, script):
         '''
-        Runs Timed Power Control Function after switching the directory to it's location.
+        Runs script using full path after changing the working directory in case of relative paths in script.
         '''
         os.chdir(os.path.split(script)[0])
         subprocess.call(["python", script], shell=False)
@@ -155,10 +170,12 @@ class Home:
         Creates Home Control Interface.
         '''
         self.Home_Interface = Tk()
-        # window_width = 1108
-        # window_height = 580
-        # width = int((self.Home_Interface.winfo_screenwidth()-window_width)/2)
-        # height = int((self.Home_Interface.winfo_screenheight()-window_height)/2)
+        self.status_data = tk.StringVar()
+        window_height = 724
+        window_width = 1108
+        height = int((self.Home_Interface.winfo_screenheight()-window_height)/2)
+        width = int((self.Home_Interface.winfo_screenwidth()-window_width)/2)
+        self.Home_Interface.geometry(f'+{width}+{height}')
         # self.Home_Interface.geometry(f'{window_width}x{window_height}+{width}+{height}')
         self.Home_Interface.title(self.window_title)
         self.Home_Interface.iconbitmap(self.Home_Interface, 'bulb.ico')
@@ -168,14 +185,14 @@ class Home:
         # default values for interface
         background = 'white'
         base_font = ('Arial Bold', 20)
-        small_base_font = ('Arial Bold', 15)
+        small_base_font = ('Arial Bold', 16)
         pad_x = 10
         pad_y = 10
 
         # Frames
         # Left Frames
         ComputerStatus = LabelFrame(self.Home_Interface, text='Computer Status', bg=background,
-            font=base_font, padx=pad_x, pady=pad_y, width=300, height=200)
+            font=base_font, padx=pad_x, pady=pad_y, width=300, height=150)
         ComputerStatus.grid(column=0, row=0, padx=pad_x, pady=pad_y, sticky='nsew')
 
         HueLightControlFrame = LabelFrame(self.Home_Interface, text='Hue Light Control', bg=background,
@@ -188,7 +205,7 @@ class Home:
 
         # Right Frames
         SmartPlugControlFrame = LabelFrame(self.Home_Interface, text='Smart Plug Control', bg=background,
-            font=base_font, padx=pad_x, pady=pad_y, width=300, height=390)
+            font=base_font, padx=pad_x, pady=pad_y, width=300, height=150)
         SmartPlugControlFrame.grid(column=1, row=0, padx=pad_x, pady=pad_y, sticky='nsew')
 
         AudioSettingsFrame = LabelFrame(self.Home_Interface, text='Audio Settings', bg=background, font=base_font,
@@ -204,9 +221,9 @@ class Home:
         VRFrame.grid(column=1, row=3, padx=pad_x, pady=pad_x, sticky='nsew')
 
         # Labels
-        self.ComputerInfo = Label(ComputerStatus, text='Computer Status', bg=background, justify=LEFT,
-            font=small_base_font, padx=pad_x, pady=pad_y)
-        self.ComputerInfo.grid(column=0, row=0, padx=pad_x, pady=pad_y, sticky='nsew')
+        self.ComputerInfo = Label(ComputerStatus, textvariable=self.status_data, bg=background, justify=LEFT,
+            font=small_base_font)
+        self.ComputerInfo.grid(column=0, row=0)
 
         # Buttons
         LightsOn = Button(HueLightControlFrame, text="Lights On", command=lambda: self.set_scene('Normal'),
@@ -284,6 +301,11 @@ class Home:
         #  Smart Plugs running through state check function.
         self.plug_state_check()
         self.check_computer_status()
+
+        self.Home_Interface.update()
+        print (self.Home_Interface.winfo_width())
+        # TODO Fix incorrect height
+        print (self.Home_Interface.winfo_height())
 
         self.Home_Interface.mainloop()
 
