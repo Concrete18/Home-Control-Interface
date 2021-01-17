@@ -12,6 +12,63 @@ import socket
 import psutil
 import time
 import os
+import paho.mqtt.client as mqtt
+import json
+
+
+class Notification:
+
+
+    def __init__(self, client_name, subscribe_name):
+        # settings
+        self.client_name = client_name
+        self.subscribe_name = subscribe_name
+        # secret config settings
+        with open('config.json') as json_file:
+            self.data = json.load(json_file)
+        self.broker = self.data['settings']['broker']
+        self.client = mqtt.Client(self.client_name)
+
+
+    def on_connect(self, client, userdata, flags, rc):
+        '''
+        The callback for when the client receives a CONNACK response from the server.
+        '''
+        print(f'Connected to Raspberry Pi with result code {rc}')
+        # Subscribing in on_connect() means that if we lose the connection and
+        # reconnect then subscriptions will be renewed.
+        client.subscribe(self.subscribe_name)
+
+
+    @staticmethod
+    def on_message(client, userdata, msg):
+        '''
+        The callback for when a published message is received from the server.
+        '''
+        print(f'{msg.topic} {msg.payload}')
+        print(type(msg.payload))
+        perf_data = json.loads(msg.payload)
+        for x, y in perf_data.items():
+            print(x, y)
+
+
+    @staticmethod
+    def on_disconnect(client, userdata, rc):
+        '''
+        The callback for when a disconnect occurs.
+        '''
+        print('Client Disconnected.')
+
+
+    def main(self):
+        '''
+        Main function that brings everything together.
+        '''
+        self.client.on_connect = self.on_connect
+        self.client.on_message = self.on_message
+        self.client.on_disconnect =self.on_disconnect
+        self.client.connect(self.broker, 1883, 60)
+        self.client.loop_forever(timeout=2, retry_first_connection=1)  # blocking call
 
 
 class Home:
@@ -33,6 +90,7 @@ class Home:
         self.lighthouse_plugged_in = 0
         self.ras_pi = '192.168.0.114'
         self.check_pi_status = 1
+        self.Notif = Notification('Raspberry Pi', 'perf_data')
         # ahk
         self.ahk = AHK(executable_path='C:/Program Files/AutoHotkey/AutoHotkey.exe')
         # python scripts
@@ -365,11 +423,12 @@ class Home:
             filename='bulb.ico',
             tooltip='Home Control Interface'
             )
-
         while True:
             event = Tray.Read()
             if event == 'Exit':
-                    quit()
+                self.Notif.client.loop_stop()
+                self.Notif.client.disconnect()
+                quit()
             elif event == 'Lights On':
                 self.set_scene('Normal')
             elif event == 'Backlight':
@@ -383,4 +442,5 @@ class Home:
 if __name__ == "__main__":
     Home =  Home()
     Home.check_pi()
+    Home.Notif.main()
     Home.create_tray()
