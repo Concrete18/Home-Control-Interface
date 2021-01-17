@@ -10,7 +10,6 @@ import subprocess
 import threading
 import socket
 import psutil
-import math
 import time
 import os
 
@@ -69,29 +68,23 @@ class Home:
         '''
         if seconds < (60 * 60):  # seconds in minute * minutes in hour
             minutes = round(seconds / 60, 1)  # seconds in a minute
-            return f' {minutes} minutes'
+            return f'{minutes} minutes'
         elif seconds < (60 * 60 * 24):  # seconds in minute * minutes in hour * hours in a day
             hours = round(seconds / (60 * 60), 1)  # seconds in minute * minutes in hour
-            return f' {hours} hours'
+            return f'{hours} hours'
         else:
             days = round(seconds / 86400, 1)  # seconds in minute * minutes in hour * hours in a day
-            return f' {days} days'
+            return f'{days} days'
 
 
     def check_computer_status(self):
         def callback():
             mem = psutil.virtual_memory()
             virt_mem = f'{round(mem.available/1024/1024/1024, 1)}/{round(mem.total/1024/1024/1024, 1)}'
-            uptime = self.readable_time_since(int(time.time() - self.boot_time))
-            cpu_temp = 'WIP'
-            gpu_temp = 'WIP'
-            self.status_data.set(f'''
-                Uptime: {uptime}
-                CPU Temp: {cpu_temp}
-                GPU Temp: {gpu_temp}
-                Memory: {virt_mem} GB
-                Pi Status: {self.rpi_status}
-                ''')
+            self.uptime.set(self.readable_time_since(int(time.time() - self.boot_time)))
+            self.cpu_util.set(f'{psutil.cpu_percent(interval=1)}%')
+            self.virt_mem.set(f'{virt_mem} GB')
+            self.pi_status.set(self.rpi_status)
         pi_thread = threading.Thread(target=callback)
         pi_thread.start()
         self.Home_Interface.after(5000, self.check_computer_status)
@@ -170,7 +163,12 @@ class Home:
         Creates Home Control Interface.
         '''
         self.Home_Interface = Tk()
-        self.status_data = tk.StringVar()
+        self.uptime = tk.StringVar()
+        self.cpu_util = tk.StringVar()
+        self.cpu_load = tk.StringVar()
+        self.virt_mem = tk.StringVar()
+        self.pi_status = tk.StringVar()
+        self.pi_status.set(self.rpi_status)
         window_height = 724
         window_width = 1108
         height = int((self.Home_Interface.winfo_screenheight()-window_height)/2)
@@ -184,46 +182,63 @@ class Home:
 
         # default values for interface
         background = 'white'
-        base_font = ('Arial Bold', 20)
-        small_base_font = ('Arial Bold', 16)
+        bold_base_font = ('Arial Bold', 20)
+        small_bold_base_font = ('Arial Bold', 16)
+        small_base_font = ('Arial', 12)
         pad_x = 10
         pad_y = 10
 
         # Frames
         # Left Frames
         ComputerStatus = LabelFrame(self.Home_Interface, text='Computer Status', bg=background,
-            font=base_font, padx=pad_x, pady=pad_y, width=300, height=150)
+            font=bold_base_font, padx=pad_x, pady=pad_y, width=300, height=150)
         ComputerStatus.grid(column=0, row=0, padx=pad_x, pady=pad_y, sticky='nsew')
 
         HueLightControlFrame = LabelFrame(self.Home_Interface, text='Hue Light Control', bg=background,
-            font=base_font, padx=pad_x, pady=pad_y, width=300, height=400)
+            font=bold_base_font, padx=pad_x, pady=pad_y, width=300, height=400)
         HueLightControlFrame.grid(column=0, row=1, rowspan=2, padx=pad_x, pady=pad_y, sticky='nsew')
 
-        Script_Shortcuts = LabelFrame(self.Home_Interface, text='Script Shortcuts', bg=background, font=base_font,
+        Script_Shortcuts = LabelFrame(self.Home_Interface, text='Script Shortcuts', bg=background, font=bold_base_font,
             padx=pad_x, pady=pad_y, width=300, height=200)
         Script_Shortcuts.grid(column=0, row=3, padx=pad_x, pady=pad_y, sticky='nsew')
 
         # Right Frames
         SmartPlugControlFrame = LabelFrame(self.Home_Interface, text='Smart Plug Control', bg=background,
-            font=base_font, padx=pad_x, pady=pad_y, width=300, height=150)
+            font=bold_base_font, padx=pad_x, pady=pad_y, width=300, height=150)
         SmartPlugControlFrame.grid(column=1, row=0, padx=pad_x, pady=pad_y, sticky='nsew')
 
-        AudioSettingsFrame = LabelFrame(self.Home_Interface, text='Audio Settings', bg=background, font=base_font,
+        AudioSettingsFrame = LabelFrame(self.Home_Interface, text='Audio Settings', bg=background, font=bold_base_font,
             padx=pad_x, pady=pad_y, width=300, height=390)
         AudioSettingsFrame.grid(column=1, row=1, padx=pad_x, pady=pad_y, sticky='nsew')
 
-        ProjectionFrame = LabelFrame(self.Home_Interface, text='Projection', bg=background, font=base_font,
+        ProjectionFrame = LabelFrame(self.Home_Interface, text='Projection', bg=background, font=bold_base_font,
             padx=pad_x, pady=pad_y, width=300, height=400)
         ProjectionFrame.grid(column=1, row=2, padx=pad_x, pady=pad_y, sticky='nsew')
 
-        VRFrame = LabelFrame(self.Home_Interface, text='VR Settings', bg=background, font=base_font,
+        VRFrame = LabelFrame(self.Home_Interface, text='VR Settings', bg=background, font=bold_base_font,
             padx=pad_x, pady=pad_y, width=300, height=400)
         VRFrame.grid(column=1, row=3, padx=pad_x, pady=pad_x, sticky='nsew')
 
         # Labels
-        self.ComputerInfo = Label(ComputerStatus, textvariable=self.status_data, bg=background, justify=LEFT,
-            font=small_base_font)
+        self.ComputerInfo = Label(ComputerStatus, text='|PC Uptime|', bg=background, font=small_bold_base_font)
         self.ComputerInfo.grid(column=0, row=0)
+        self.ComputerInfo = Label(ComputerStatus, textvariable=self.uptime, bg=background, font=small_base_font)
+        self.ComputerInfo.grid(column=0, row=1)
+
+        self.ComputerInfo = Label(ComputerStatus, text='|CPU Util|', bg=background, font=small_bold_base_font)
+        self.ComputerInfo.grid(column=1, row=0)
+        self.ComputerInfo = Label(ComputerStatus, textvariable=self.cpu_util, bg=background, font=small_base_font)
+        self.ComputerInfo.grid(column=1, row=1)
+
+        self.ComputerInfo = Label(ComputerStatus, text='|Memory|', bg=background, font=small_bold_base_font)
+        self.ComputerInfo.grid(column=2, row=0)
+        self.ComputerInfo = Label(ComputerStatus, textvariable=self.virt_mem, bg=background, font=small_base_font)
+        self.ComputerInfo.grid(column=2, row=1)
+
+        self.ComputerInfo = Label(ComputerStatus, text='|Pi Status|', bg=background, font=small_bold_base_font)
+        self.ComputerInfo.grid(column=3, row=0)
+        self.ComputerInfo = Label(ComputerStatus, textvariable=self.pi_status, bg=background, font=small_base_font)
+        self.ComputerInfo.grid(column=3, row=1)
 
         # Buttons
         LightsOn = Button(HueLightControlFrame, text="Lights On", command=lambda: self.set_scene('Normal'),
