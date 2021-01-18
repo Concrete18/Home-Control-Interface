@@ -165,8 +165,9 @@ class Home:
         self.Home_Interface = Tk()
         self.uptime = tk.StringVar()
         self.cpu_util = tk.StringVar()
-        self.cpu_load = tk.StringVar()
+        self.cpu_util.set('Checking')
         self.virt_mem = tk.StringVar()
+        self.virt_mem.set('Checking')
         self.pi_status = tk.StringVar()
         self.pi_status.set(self.rpi_status)
         window_height = 724
@@ -220,23 +221,24 @@ class Home:
         VRFrame.grid(column=1, row=3, padx=pad_x, pady=pad_x, sticky='nsew')
 
         # Labels
-        self.ComputerInfo = Label(ComputerStatus, text='|PC Uptime|', bg=background, font=small_bold_base_font)
-        self.ComputerInfo.grid(column=0, row=0)
+        ci_padx = 13
+        self.ComputerInfo = Label(ComputerStatus, text='PC Uptime', bg=background, font=small_bold_base_font)
+        self.ComputerInfo.grid(column=0, row=0, padx=ci_padx)
         self.ComputerInfo = Label(ComputerStatus, textvariable=self.uptime, bg=background, font=small_base_font)
         self.ComputerInfo.grid(column=0, row=1)
 
-        self.ComputerInfo = Label(ComputerStatus, text='|CPU Util|', bg=background, font=small_bold_base_font)
-        self.ComputerInfo.grid(column=1, row=0)
+        self.ComputerInfo = Label(ComputerStatus, text='CPU Util', bg=background, font=small_bold_base_font)
+        self.ComputerInfo.grid(column=1, row=0, padx=ci_padx)
         self.ComputerInfo = Label(ComputerStatus, textvariable=self.cpu_util, bg=background, font=small_base_font)
         self.ComputerInfo.grid(column=1, row=1)
 
-        self.ComputerInfo = Label(ComputerStatus, text='|Memory|', bg=background, font=small_bold_base_font)
-        self.ComputerInfo.grid(column=2, row=0)
+        self.ComputerInfo = Label(ComputerStatus, text='Memory', bg=background, font=small_bold_base_font)
+        self.ComputerInfo.grid(column=2, row=0, padx=ci_padx)
         self.ComputerInfo = Label(ComputerStatus, textvariable=self.virt_mem, bg=background, font=small_base_font)
         self.ComputerInfo.grid(column=2, row=1)
 
-        self.ComputerInfo = Label(ComputerStatus, text='|Pi Status|', bg=background, font=small_bold_base_font)
-        self.ComputerInfo.grid(column=3, row=0)
+        self.ComputerInfo = Label(ComputerStatus, text='Rasberry Pi', bg=background, font=small_bold_base_font)
+        self.ComputerInfo.grid(column=3, row=0, padx=ci_padx)
         self.ComputerInfo = Label(ComputerStatus, textvariable=self.pi_status, bg=background, font=small_base_font)
         self.ComputerInfo.grid(column=3, row=1)
 
