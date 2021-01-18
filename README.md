@@ -5,7 +5,11 @@ Click Taskbar Icon to bring up the interface and right click the icon and click 
 
 ## Features
 
-* Power Control Settings via another app that I made but did not include in this repo.
+* Full control of all of my Kasa smart plugs and Hue light bulbs.
+* Audio and projection control
+* VR start functionality that sets up room and PC for VR.
+* Shortcuts to some other scripts. (Listed Below)
+* Power Control Settings via another app. (Not in Repo)
 [Timed Shutdown and Sleep](https://github.com/Concrete18/Timed-Shutdown-Sleep)
 
 ## Coding Techniques used
@@ -18,6 +22,7 @@ Click Taskbar Icon to bring up the interface and right click the icon and click 
 * NIRCMD
 * AHK Wrapper
 * Modules for Hue and Smart Plug controls
+* psutil for system information
 
 ## Module Download Requirements
 
@@ -34,4 +39,4 @@ pip install -r requirements.txt
 * Tkinter is used for the interface
 * PySimpleGUIWx and PythonWx for the task bar icon.
 
-![Image of Home Control Interface](https://i.imgur.com/I0KfGmk.png)
+![Image of Home Control Interface](https://raw.githubusercontent.com/Concrete18/Home-Control-Interface/master/screenshot.png)

@@ -141,3 +141,4 @@ dmypy.json
 /pyvenv.cfg
 /Home Control Interface.lnk
 /LightsToggle.pyw
+.vscode
