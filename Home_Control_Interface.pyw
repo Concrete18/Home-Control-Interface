@@ -25,6 +25,7 @@ class Home:
             os.chdir(self.script_dir)
         # defaults
         self.window_title = 'Home Control Interface'
+        self.icon = 'bulb.ico'
         # device init
         self.Hue_Hub = Bridge('192.168.0.134')
         self.Heater = SmartPlug('192.168.0.146')
@@ -177,7 +178,7 @@ class Home:
         self.Home_Interface.geometry(f'+{width}+{height}')
         # self.Home_Interface.geometry(f'{window_width}x{window_height}+{width}+{height}')
         self.Home_Interface.title(self.window_title)
-        self.Home_Interface.iconbitmap(self.Home_Interface, 'bulb.ico')
+        self.Home_Interface.iconbitmap(self.Home_Interface, self.icon)
         self.Home_Interface.configure(bg='white')
         self.Home_Interface.resizable(width=False, height=False)
 
@@ -364,7 +365,7 @@ class Home:
             'Lights Off',
             'Exit'
             ]],
-            filename='bulb.ico',
+            filename=self.icon,
             tooltip='Home Control Interface'
             )
 
