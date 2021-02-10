@@ -1,3 +1,4 @@
+from logging import exception
 from tkinter import Tk, Button, Label, LabelFrame, messagebox, LEFT
 import tkinter as tk
 from pyHS100 import SmartPlug
@@ -12,6 +13,7 @@ import socket
 import psutil
 import time
 import os
+import sys
 
 
 class Home:
@@ -23,14 +25,15 @@ class Home:
         if os.getcwd() != self.script_dir:
             print('Current Working Directory is Different.')
             os.chdir(self.script_dir)
+        self.debug = 0
         # defaults
         self.window_title = 'Home Control Interface'
         self.icon = 'bulb.ico'
         # device init
         self.Hue_Hub = Bridge('192.168.0.134')
         self.Heater = SmartPlug('192.168.0.146')
-        self.heater_plugged_in = 1
         self.Lighthouse = SmartPlug('192.168.0.197')
+        self.heater_plugged_in = 1
         self.lighthouse_plugged_in = 0
         self.ras_pi = '192.168.0.114'
         self.check_pi_status = 1
@@ -40,25 +43,9 @@ class Home:
         self.switch_to_abc = "D:/Google Drive/Coding/Python/Scripts/1-Complete-Projects/Roku-Control/Instant_Set_to_ABC.py"
         self.timed_shutdown = "D:/Google Drive/Coding/Python/Scripts/1-Complete-Projects/Timed-Shutdown/Timed_Shutdown.pyw"
         # Status vars
+        self.computer_status_interval = 1  # interval in seconds
         self.rpi_status = 'Checking Status'
         self.boot_time = psutil.boot_time()
-
-
-    def check_pi(self):
-        '''
-        Checks if Pi is up.
-        '''
-        def callback():
-            if self.check_pi_status == 1:
-                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                result = sock.connect_ex((self.ras_pi, 22))
-                if result == 0:
-                    self.rpi_status = 'Online'
-                else:
-                    self.rpi_status = 'Offline'
-                    messagebox.showwarning(title=self.window_title, message=f'Raspberry Pi is not online.')
-        pi_thread = threading.Thread(target=callback)
-        pi_thread.start()
 
 
     @staticmethod
@@ -78,47 +65,55 @@ class Home:
             return f'{days} days'
 
 
-    def check_computer_status(self):
+    def check_pi(self):
+        '''
+        Checks if Pi is up.
+        '''
         def callback():
-            mem = psutil.virtual_memory()
-            virt_mem = f'{round(mem.available/1024/1024/1024, 1)}/{round(mem.total/1024/1024/1024, 1)}'
-            self.uptime.set(self.readable_time_since(int(time.time() - self.boot_time)))
-            self.cpu_util.set(f'{psutil.cpu_percent(interval=1)}%')
-            self.virt_mem.set(f'{virt_mem} GB')
-            self.pi_status.set(self.rpi_status)
+            if self.check_pi_status == 1:
+                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                result = sock.connect_ex((self.ras_pi, 22))
+                if result == 0:
+                    self.rpi_status = 'Online'
+                else:
+                    self.rpi_status = 'Offline'
+                    messagebox.showwarning(title=self.window_title, message=f'Raspberry Pi is not online.')
         pi_thread = threading.Thread(target=callback)
         pi_thread.start()
-        self.Home_Interface.after(5000, self.check_computer_status)
 
 
-    # Hue Bulb Functions
-    def set_scene(self, scene_name):
-        '''
-        Set Hue scene function.
-        '''
-        self.Hue_Hub.run_scene('My Bedroom', scene_name, 1)
+    def check_computer_status(self):
+        mem = psutil.virtual_memory()
+        virt_mem = f'{round(mem.used/1024/1024/1024, 1)}/{round(mem.total/1024/1024/1024, 1)}'
+        self.uptime.set(self.readable_time_since(int(time.time() - self.boot_time)))
+        self.cpu_util.set(f'{psutil.cpu_percent(interval=0.1)}%')
+        self.virt_mem.set(f'{virt_mem} GB')
+        self.Home_Interface.after(self.computer_status_interval*1000, self.check_computer_status)
 
 
     @staticmethod
-    def smart_plug_toggle(name, device, button):
+    def smart_plug_toggle(device, name='device', button=0):
         '''
         Smart Plug toggle function.
         '''
         try:
             if device.get_sysinfo()["relay_state"] == 0:
                 device.turn_on()
-                button.config(relief='sunken')  # On State
+                if button != 0:
+                    button.config(relief='sunken')  # On State
             else:
                 device.turn_off()
-                button.config(relief='raised')  # Off State
-        except:
-            print(f'{name} Error')
+                if button != 0:
+                    button.config(relief='raised')  # Off State
+        except exception as error:
+            print(f'Error toggling device\n{error}\n{name}')
 
 
     def start_vr(self):
         '''
         Runs SteamVR shortcut and turns on lighthouse plugged into smart plug for tracking if it is off.
         '''
+        self.Hue_Hub.run_scene('My Bedroom', 'Normal', 1)
         if self.lighthouse_plugged_in and self.Lighthouse.get_sysinfo()["relay_state"] == 0:
             self.Lighthouse.turn_on()
             self.LighthouseButton.config(relief='sunken')
@@ -150,13 +145,12 @@ class Home:
         Switch.start()
 
 
-    def python_script_runner(self, script):
+    @staticmethod
+    def python_script_runner(script):
         '''
         Runs script using full path after changing the working directory in case of relative paths in script.
         '''
-        os.chdir(os.path.split(script)[0])
-        subprocess.call(["python", script], shell=False)
-        os.chdir(self.script_dir)
+        subprocess.run([sys.executable, script], cwd=os.path.dirname(script))
 
 
     def create_window(self):
@@ -244,8 +238,8 @@ class Home:
         self.ComputerInfo.grid(column=3, row=1)
 
         # Buttons
-        LightsOn = Button(HueLightControlFrame, text="Lights On", command=lambda: self.set_scene('Normal'),
-            font=("Arial", 19), width=15)
+        LightsOn = Button(HueLightControlFrame, text="Lights On",
+            command=lambda: self.Hue_Hub.run_scene('My Bedroom', 'Normal', 1), font=("Arial", 19), width=15)
         LightsOn.grid(column=0, row=1, padx=pad_x, pady=pad_y)
 
         TurnAllOff = Button(HueLightControlFrame, text="Lights Off",
@@ -253,19 +247,20 @@ class Home:
         TurnAllOff.grid(column=1, row=1, padx=pad_x, pady=pad_y)
 
         BackLight = Button(HueLightControlFrame, text="BackLight Mode",
-            command=lambda: self.set_scene('Backlight'), font=("Arial", 19), width=15)
+            command=lambda: self.Hue_Hub.run_scene('My Bedroom', 'Backlight', 1), font=("Arial", 19), width=15)
         BackLight.grid(column=0, row=2, padx=pad_x, pady=pad_y)
 
-        DimmedMode = Button(HueLightControlFrame, text="Dimmed Mode",command=lambda: self.set_scene('Dimmed'),
-            font=("Arial", 19), width=15)
+        DimmedMode = Button(HueLightControlFrame, text="Dimmed Mode",
+            command=lambda: self.Hue_Hub.run_scene('My Bedroom', 'Dimmed', 1), font=("Arial", 19), width=15)
         DimmedMode.grid(column=1, row=2, padx=pad_x, pady=pad_y)
 
         Nightlight = Button(HueLightControlFrame, text="Night Light",
-            command=lambda: self.set_scene('Night light'), font=("Arial", 19), width=15)
+            command=lambda: self.Hue_Hub.run_scene('My Bedroom', 'Night light', 1), font=("Arial", 19), width=15)
         Nightlight.grid(column=0, row=3, padx=pad_x, pady=pad_y)
 
         self.HeaterButton = Button(SmartPlugControlFrame, text="Heater Toggle", font=("Arial", 19), width=15,
-            command=lambda: self.smart_plug_toggle('Heater', self.Heater, self.HeaterButton), state='disabled',)
+            command=lambda: self.smart_plug_toggle(name='Heater', device=self.Heater, button=self.HeaterButton),
+            state='disabled')
         self.HeaterButton.grid(column=0, row=5, padx=pad_x, pady=pad_y)
 
         UnsetButton = Button(SmartPlugControlFrame, text="Unset", state='disabled',
@@ -287,7 +282,8 @@ class Home:
             StartVRButton.grid(column=0, row=9, padx=pad_x, pady=pad_y)
 
             self.LighthouseButton = Button(VRFrame, text="Lighthouse Toggle", state='disabled', font=("Arial", 19),
-                command=lambda: self.smart_plug_toggle('Lighthouse', self.Lighthouse, self.LighthouseButton), width=15,)
+                command=lambda: self.smart_plug_toggle(name='Lighthouse', device=self.Lighthouse,
+                button=self.LighthouseButton), width=15)
             self.LighthouseButton.grid(column=1, row=9, padx=pad_x, pady=pad_y)
 
             AudioToSpeakers = Button(AudioSettingsFrame, text="Speaker Audio",
@@ -320,10 +316,11 @@ class Home:
         self.plug_state_check()
         self.check_computer_status()
 
-        self.Home_Interface.update()
-        print (self.Home_Interface.winfo_width())
         # TODO Fix incorrect height
-        print (self.Home_Interface.winfo_height())
+        if self.debug:
+            self.Home_Interface.update()
+            print(self.Home_Interface.winfo_width())
+            print(self.Home_Interface.winfo_height())
 
         self.Home_Interface.mainloop()
 
@@ -349,7 +346,7 @@ class Home:
                 except Exception as e:
                     print('Smart Plug', e)
                     messagebox.showwarning(title=self.window_title, message=f'Error communicating with {device}.')
-        pi_thread = threading.Thread(target=callback)
+        pi_thread = threading.Thread(target=callback, daemon=True)
         pi_thread.start()
 
 
@@ -361,26 +358,29 @@ class Home:
         Tray = sg.SystemTray(
             menu=['menu',[
             'Lights On',
-            'Backlight',
             'Lights Off',
+            'Backlight Scene',
+            'Heater Toggle',
             'Exit'
             ]],
             filename=self.icon,
-            tooltip='Home Control Interface'
-            )
+            tooltip='Home Control Interface')
 
         while True:
             event = Tray.Read()
             if event == 'Exit':
-                    quit()
+                exit()
             elif event == 'Lights On':
-                self.set_scene('Normal')
-            elif event == 'Backlight':
-                self.set_scene('Backlight')
+                self.Hue_Hub.run_scene('My Bedroom', 'Normal', 1)
             elif event == 'Lights Off':
                 self.Hue_Hub.set_group('My Bedroom', 'on', False)
+            elif event == 'Backlight Scene':
+                self.Hue_Hub.run_scene('My Bedroom', 'Backlight', 1)
+            elif event == 'Heater Toggle':
+                self.smart_plug_toggle(self.Heater)
             elif event == '__ACTIVATED__':
                 self.create_window()
+                # TODO fix issue where tray does not work when interface is open
 
 
 if __name__ == "__main__":
