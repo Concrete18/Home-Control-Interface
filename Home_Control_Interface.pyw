@@ -180,7 +180,7 @@ class Home:
         background = 'white'
         bold_base_font = ('Arial Bold', 20)
         small_bold_base_font = ('Arial Bold', 16)
-        small_base_font = ('Arial', 12)
+        small_base_font = ('Arial', 15)
         pad_x = 10
         pad_y = 10
 
@@ -365,6 +365,8 @@ class Home:
             ]],
             filename=self.icon,
             tooltip='Home Control Interface')
+
+        print('Tray Created')
 
         while True:
             event = Tray.Read()
