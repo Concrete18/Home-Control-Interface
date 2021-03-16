@@ -3,3 +3,4 @@ phue
 pyHS100
 PySimpleGUIWx
 wxPython
+psutil
