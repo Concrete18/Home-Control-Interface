@@ -48,18 +48,27 @@ class Home:
     rpi_status = 'Checking Status'
     boot_time = psutil.boot_time()
 
-    Tray = sg.SystemTray(
-        menu=['menu',[
-        'Lights On',
-        'Lights Off',
-        'Backlight Scene',
-        'Heater Toggle',
-        'Speaker',
-        'Headphones',
-        'Exit'
-        ]],
-        filename=icon,
-        tooltip=window_title)
+
+    def setup_tray(self):
+        '''
+        ph
+        '''
+        buttons = [
+            'Lights On',
+            'Lights Off',
+            'Backlight Scene',
+            '---',
+            'Set audio to Speaker',
+            'Set audio to Headphones',
+            '---'
+        ]
+        if self.heater_plugged_in:
+            buttons.extend(['Heater Toggle', '---'])
+        buttons.append('Exit')
+        self.Tray = sg.SystemTray(
+            menu=['menu', buttons],
+            filename=self.icon,
+            tooltip=self.window_title)
 
 
     def update_tray(self):
@@ -408,9 +417,9 @@ class Home:
                 self.Hue_Hub.run_scene('My Bedroom', 'Backlight', 1)
             elif event == 'Heater Toggle':
                 self.smart_plug_toggle(self.Heater)
-            elif event == 'Speaker':
+            elif event == 'Set audio to Speaker':
                 self.set_sound_device('Logitech Speakers')
-            elif event == 'Headphones':
+            elif event == 'Set audio to Headphones':
                 self.set_sound_device('Headphones')
             elif event == '__ACTIVATED__':
                 self.create_window()
@@ -422,6 +431,7 @@ class Home:
         '''
         # self.discover_smart_plugs()
         self.check_pi()
+        self.setup_tray()
         self.create_tray()
 
 
