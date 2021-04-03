@@ -1,17 +1,11 @@
 from tkinter import Tk, Button, Label, LabelFrame, messagebox
 import tkinter as tk
+import psutil, time, sys, os, socket, threading, subprocess, re
 from pyHS100 import SmartPlug, Discover
 import PySimpleGUIWx as sg
 from phue import Bridge
 from time import sleep
 from ahk import AHK
-import subprocess
-import threading
-import socket
-import psutil
-import time
-import sys
-import os
 
 
 class Home:
@@ -21,37 +15,47 @@ class Home:
 
     # settings
     debug = 0
-
     # defaults
     icon = 'bulb.ico'
     window_title = 'Home Control Interface'
     window_state = 0
-
     # device init
     Hue_Hub = Bridge('192.168.0.134')
-    Heater = SmartPlug('192.168.0.146')
-    Lighthouse = SmartPlug('192.168.0.197')
     ras_pi = '192.168.0.114'
-    heater_plugged_in = 1
-    lighthouse_plugged_in = 1
     check_pi_status = 1
-
     # ahk
     ahk = AHK(executable_path='C:/Program Files/AutoHotkey/AutoHotkey.exe')
-
     # python scripts
     switch_to_abc = "D:/Google Drive/Coding/Python/Scripts/1-Complete-Projects/Roku-Control/Instant_Set_to_ABC.py"
     timed_shutdown = "D:/Google Drive/Coding/Python/Scripts/1-Complete-Projects/Timed-Shutdown/Timed_Shutdown.pyw"
-
     # Status vars
     computer_status_interval = 1  # interval in seconds
     rpi_status = 'Checking Status'
     boot_time = psutil.boot_time()
 
 
+    def discover_smart_plugs(self):
+        '''
+        Finds all smartplugs on the network and turns on ones used within this script if its name shows up.
+        '''
+        print('Checking for active smart plugs:')
+        self.lighthouse_plugged_in = 0
+        self.heater_plugged_in = 0
+        for dev in Discover.discover().values():
+            ip = str(dev)[14:27]
+            if 'heater' in str(dev).lower():
+                print('> Heater Found')
+                self.Heater = SmartPlug(ip)
+                self.heater_plugged_in = 1
+            if 'tv light house' in str(dev).lower():
+                print('> Lighthouse Found')
+                self.Lighthouse = SmartPlug(ip)
+                self.lighthouse_plugged_in = 1
+
+
     def setup_tray(self):
         '''
-        ph
+        Sets up tray object with options.
         '''
         buttons = [
             'Lights On',
@@ -62,13 +66,17 @@ class Home:
             'Set audio to Headphones',
             '---'
         ]
+        # togglable options
         if self.heater_plugged_in:
             buttons.extend(['Heater Toggle', '---'])
+        # end of options
         buttons.append('Exit')
+        # tray object creation
         self.Tray = sg.SystemTray(
             menu=['menu', buttons],
             filename=self.icon,
             tooltip=self.window_title)
+        print('Tray Setup')
 
 
     def update_tray(self):
@@ -107,25 +115,15 @@ class Home:
 
     def check_pi(self):
         '''
-        Checks if Pi is up.
+        Sets rpi_status based on if the Pi is online or not.
         '''
-        def callback():
-            if self.check_pi_status == 1:
-                sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                result = sock.connect_ex((self.ras_pi, 22))
-                if result == 0:
-                    self.rpi_status = 'Online'
-                else:
-                    self.rpi_status = 'Offline'
-                    messagebox.showwarning(title=self.window_title, message=f'Raspberry Pi is not online.')
-        pi_thread = threading.Thread(target=callback)
-        pi_thread.start()
-
-
-    @staticmethod
-    def discover_smart_plugs():
-        for dev in Discover.discover().values():
-            print(dev)
+        if self.check_pi_status == 1:
+            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            result = sock.connect_ex((self.ras_pi, 22))
+            if result == 0:
+                self.rpi_status = 'Online'
+            else:
+                self.rpi_status = 'Offline'
 
 
     def check_computer_status(self):
@@ -427,11 +425,15 @@ class Home:
 
     def run(self):
         '''
-        runs main script functions.
+        Runs main script functions.
         '''
-        # self.discover_smart_plugs()
-        self.check_pi()
+        start = time.perf_counter()
+        self.discover_smart_plugs()
+        threading.Thread(target=self.check_pi).start()
         self.setup_tray()
+        finish = time.perf_counter()
+        elapsed = round(finish-start, 2)
+        print(f'Startup Time: {elapsed} seconds')
         self.create_tray()
 
 
