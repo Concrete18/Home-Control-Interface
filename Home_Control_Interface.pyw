@@ -41,16 +41,18 @@ class Home:
         print('Checking for active smart plugs:')
         self.lighthouse_plugged_in = 0
         self.heater_plugged_in = 0
+        pattern = "\d{1,3}.\d{1,3}\.\d{1,3}\.\d{1,3}"
         for dev in Discover.discover().values():
-            ip = str(dev)[14:27]
-            if 'heater' in str(dev).lower():
-                print('> Heater Found')
-                self.Heater = SmartPlug(ip)
-                self.heater_plugged_in = 1
-            if 'tv light house' in str(dev).lower():
-                print('> Lighthouse Found')
-                self.Lighthouse = SmartPlug(ip)
-                self.lighthouse_plugged_in = 1
+            ip = re.findall(pattern, str(dev))
+            if len(ip) > 0:
+                if 'heater' in str(dev).lower():
+                    print('> Heater Found')
+                    self.Heater = SmartPlug(ip[0])
+                    self.heater_plugged_in = 1
+                if 'tv light house' in str(dev).lower():
+                    print('> Lighthouse Found')
+                    self.Lighthouse = SmartPlug(ip[0])
+                    self.lighthouse_plugged_in = 1
 
 
     def setup_tray(self):
