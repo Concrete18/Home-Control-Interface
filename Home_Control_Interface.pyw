@@ -321,17 +321,27 @@ class Home:
             command=lambda: self.python_script_runner(self.timed_shutdown), font=("Arial", 19), width=15)
         TimerControl.grid(column=1, row=0, padx=pad_x, pady=pad_y)
 
+        StartVRButton = Button(VRFrame, text="Start VR",
+            command=self.start_vr, font=("Arial", 19), width=15)
+        StartVRButton.grid(column=0, row=9, padx=pad_x, pady=pad_y)
+
+        self.LighthouseButton = Button(VRFrame, text="Lighthouse Toggle", state='disabled', font=("Arial", 19),
+            command=lambda: self.smart_plug_toggle(name='Lighthouse', device=self.Lighthouse,
+            button=self.LighthouseButton), width=15)
+        self.LighthouseButton.grid(column=1, row=9, padx=pad_x, pady=pad_y)
+
+        SwitchToPCMode = Button(ProjectionFrame, text="PC Mode", command=lambda: self.display_switch('PC'),
+            font=("Arial", 19), width=15)
+        SwitchToPCMode.grid(column=0, row=9, padx=pad_x, pady=pad_y)
+
+        SwitchToTVMode = Button(ProjectionFrame, text="TV Mode", command=lambda: self.display_switch('SONY TV'),
+            font=("Arial", 19), width=15)
+        SwitchToTVMode.grid(column=1, row=9, padx=pad_x, pady=pad_y)
+
+        # computer specific setup
         current_pc = socket.gethostname()
+        current_pc = 'Surface-1jhggjhg'
         if current_pc == 'Aperture-Two':
-            StartVRButton = Button(VRFrame, text="Start VR",
-                command=self.start_vr, font=("Arial", 19), width=15)
-            StartVRButton.grid(column=0, row=9, padx=pad_x, pady=pad_y)
-
-            self.LighthouseButton = Button(VRFrame, text="Lighthouse Toggle", state='disabled', font=("Arial", 19),
-                command=lambda: self.smart_plug_toggle(name='Lighthouse', device=self.Lighthouse,
-                button=self.LighthouseButton), width=15)
-            self.LighthouseButton.grid(column=1, row=9, padx=pad_x, pady=pad_y)
-
             AudioToSpeakers = Button(AudioSettingsFrame, text="Speaker Audio",
                 command=lambda: self.set_sound_device('Logitech Speakers'), font=("Arial", 19), width=15)
             AudioToSpeakers.grid(column=0, row=7, padx=pad_x, pady=pad_y)
@@ -339,15 +349,7 @@ class Home:
             AudioToHeadphones = Button(AudioSettingsFrame, text="Headphone Audio",
                 command=lambda: self.set_sound_device('Headphones'), font=("Arial", 19),width=15)
             AudioToHeadphones.grid(column=1, row=7, padx=pad_x, pady=pad_y)
-
-            SwitchToPCMode = Button(ProjectionFrame, text="PC Mode", command=lambda: self.display_switch('PC'),
-                font=("Arial", 19), width=15)
-            SwitchToPCMode.grid(column=0, row=9, padx=pad_x, pady=pad_y)
-
-            SwitchToTVMode = Button(ProjectionFrame, text="TV Mode", command=lambda: self.display_switch('SONY TV'),
-                font=("Arial", 19), width=15)
-            SwitchToTVMode.grid(column=1, row=9, padx=pad_x, pady=pad_y)
-        elif current_pc == 'Surface-1':
+        else:
             AudioToSpeakers = Button(AudioSettingsFrame, text="Speaker Audio",
                 command=lambda: self.set_sound_device('Speakers'), font=("Arial", 19), width=15)
             AudioToSpeakers.grid(column=0, row=7, padx=pad_x, pady=pad_y)
@@ -355,8 +357,10 @@ class Home:
             AudioToHeadphones = Button(AudioSettingsFrame, text="Headphone Audio",
                 command=lambda: self.set_sound_device('Aux'), font=("Arial", 19),width=15)
             AudioToHeadphones.grid(column=1, row=7, padx=pad_x, pady=pad_y)
-        else:
-            messagebox.showwarning(title=self.window_title, message='Current PC is unknown.')
+            # disables buttons that dont work on laptop
+            SwitchToPCMode.config(state='disabled')
+            SwitchToTVMode.config(state='disabled')
+            StartVRButton.config(state='disabled')
 
         #  Smart Plugs running through state check function.
         self.plug_state_check()
