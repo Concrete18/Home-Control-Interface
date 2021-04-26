@@ -340,7 +340,6 @@ class Home:
 
         # computer specific setup
         current_pc = socket.gethostname()
-        current_pc = 'Surface-1jhggjhg'
         if current_pc == 'Aperture-Two':
             AudioToSpeakers = Button(AudioSettingsFrame, text="Speaker Audio",
                 command=lambda: self.set_sound_device('Logitech Speakers'), font=("Arial", 19), width=15)
