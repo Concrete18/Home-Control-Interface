@@ -1,6 +1,6 @@
 from tkinter import Tk, Button, Label, LabelFrame, messagebox
 import tkinter as tk
-import psutil, time, sys, os, socket, threading, subprocess, re
+import psutil, time, sys, os, socket, threading, subprocess, re, json
 from pyHS100 import SmartPlug, Discover
 import PySimpleGUIWx as sg
 from phue import Bridge
@@ -8,30 +8,96 @@ from time import sleep
 from ahk import AHK
 
 
+class Smart_Hub:
+    pass
+
+
+class Lights:
+
+
+    with open('config.json') as json_file:
+        data = json.load(json_file)
+    hue_hub = Bridge(data['IP_Addresses']['hue_hub'])
+
+
+    def on(self):
+        '''
+        Sets all lights to on.
+        '''
+        print('Turning Lights On.')
+        self.hue_hub.run_scene('My Bedroom', 'Normal', 1)
+
+
+    def off(self):
+        '''
+        Sets all lights to off.
+        '''
+        print('Turning Lights Off.')
+        self.hue_hub.set_group('My Bedroom', 'on', False)
+
+
+    def set_scene(self, scene):
+        '''
+        Sets the Hue lights to the entered scene.
+        '''
+        print(f'Setting lights to {scene}.')
+        self.hue_hub.run_scene('My Bedroom', scene, 1)
+
+
+    def toggle_lights(self):
+        '''
+        Turns on all lights if they are all off or turns lights off if any are on.
+        '''
+        for lights in self.hue_hub.lights:
+            if self.hue_hub.get_light(lights.name, 'on'):
+                self.off()
+                return
+        self.on()
+
+
+    def run(self):
+        '''
+        Runs in CLI mode.
+        '''
+        try:
+            type = sys.argv[1].lower()
+        except IndexError:
+            type = 'toggle'
+        if type == 'toggle':
+            self.toggle_lights()
+        elif type == 'on':
+            self.on()
+        elif type == 'off':
+            self.off()
+
+
 class Home:
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
     os.chdir(script_dir)
 
+    with open('config.json') as json_file:
+        data = json.load(json_file)
     # settings
-    debug = 0
+    debug = data['Settings']['debug']
+    check_pi_status = data['Settings']['check_pi_status']
+    computer_status_interval = data['Settings']['computer_status_interval']  # interval in seconds
     # defaults
     icon = 'bulb.ico'
     window_title = 'Home Control Interface'
     window_state = 0
     # device init
-    Hue_Hub = Bridge('192.168.0.134')
-    ras_pi = '192.168.0.114'
-    check_pi_status = 1
+    Lights = Lights()
+    rasp_pi = data['IP_Addresses']['rasp_pi']
     # ahk
     ahk = AHK(executable_path='C:/Program Files/AutoHotkey/AutoHotkey.exe')
     # python scripts
     switch_to_abc = "D:/Google Drive/Coding/Python/Scripts/1-Complete-Projects/Roku-Control/Instant_Set_to_ABC.py"
     timed_shutdown = "D:/Google Drive/Coding/Python/Scripts/1-Complete-Projects/Timed-Shutdown/Timed_Shutdown.pyw"
     # Status vars
-    computer_status_interval = 1  # interval in seconds
     rpi_status = 'Checking Status'
     boot_time = psutil.boot_time()
+    # tray buttons
 
 
     def discover_smart_plugs(self):
@@ -86,11 +152,11 @@ class Home:
         if event == 'Exit':
             exit()
         elif event == 'Lights On':
-            self.Hue_Hub.run_scene('My Bedroom', 'Normal', 1)
+            self.Lights.on()
         elif event == 'Lights Off':
-            self.Hue_Hub.set_group('My Bedroom', 'on', False)
+            self.Lights.off()
         elif event == 'Backlight Scene':
-            self.Hue_Hub.run_scene('My Bedroom', 'Backlight', 1)
+            self.Lights.set_scene('Backlight')
         elif event == 'Heater Toggle':
             self.smart_plug_toggle(self.Heater)
         elif event == '__ACTIVATED__':
@@ -121,7 +187,7 @@ class Home:
         '''
         if self.check_pi_status == 1:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            result = sock.connect_ex((self.ras_pi, 22))
+            result = sock.connect_ex((self.rasp_pi, 22))
             if result == 0:
                 self.rpi_status = 'Online'
             else:
@@ -159,7 +225,7 @@ class Home:
         '''
         Runs SteamVR shortcut and turns on lighthouse plugged into smart plug for tracking if it is off.
         '''
-        self.Hue_Hub.run_scene('My Bedroom', 'Normal', 1)
+        self.Lights.on()
         if self.lighthouse_plugged_in and self.Lighthouse.get_sysinfo()["relay_state"] == 0:
             self.Lighthouse.turn_on()
             self.LighthouseButton.config(relief='sunken')
@@ -285,23 +351,23 @@ class Home:
 
         # Buttons
         LightsOn = Button(HueLightControlFrame, text="Lights On",
-            command=lambda: self.Hue_Hub.run_scene('My Bedroom', 'Normal', 1), font=("Arial", 19), width=15)
+            command=lambda: self.Lights.on(), font=("Arial", 19), width=15)
         LightsOn.grid(column=0, row=1, padx=pad_x, pady=pad_y)
 
         TurnAllOff = Button(HueLightControlFrame, text="Lights Off",
-            command=lambda: self.Hue_Hub.set_group('My Bedroom', 'on', False), font=("Arial", 19), width=15)
+            command=lambda: self.Lights.off(), font=("Arial", 19), width=15)
         TurnAllOff.grid(column=1, row=1, padx=pad_x, pady=pad_y)
 
         BackLight = Button(HueLightControlFrame, text="BackLight Mode",
-            command=lambda: self.Hue_Hub.run_scene('My Bedroom', 'Backlight', 1), font=("Arial", 19), width=15)
+            command=lambda: self.Lights.set_scene('Backlight'), font=("Arial", 19), width=15)
         BackLight.grid(column=0, row=2, padx=pad_x, pady=pad_y)
 
         DimmedMode = Button(HueLightControlFrame, text="Dimmed Mode",
-            command=lambda: self.Hue_Hub.run_scene('My Bedroom', 'Dimmed', 1), font=("Arial", 19), width=15)
+            command=lambda: self.Lights.set_scene('Dimmed'), font=("Arial", 19), width=15)
         DimmedMode.grid(column=1, row=2, padx=pad_x, pady=pad_y)
 
         Nightlight = Button(HueLightControlFrame, text="Night Light",
-            command=lambda: self.Hue_Hub.run_scene('My Bedroom', 'Night light', 1), font=("Arial", 19), width=15)
+            command=lambda: self.Lights.set_scene('Night light'), font=("Arial", 19), width=15)
         Nightlight.grid(column=0, row=3, padx=pad_x, pady=pad_y)
 
         self.HeaterButton = Button(SmartPlugControlFrame, text="Heater Toggle", font=("Arial", 19), width=15,
@@ -405,7 +471,7 @@ class Home:
         Creates the system tray. Clicking the Lightbulb ones the interface and right clicking it shows quick
         lighting control options.
         '''
-        # TODO fix issue where tray does not work when interface is open
+        # FIXME threading issue where tray does not work when interface is open
         # TODO open/close window when icon pressed
         print('Tray Created')
         while True:
@@ -413,11 +479,11 @@ class Home:
             if event == 'Exit':
                 exit()
             elif event == 'Lights On':
-                self.Hue_Hub.run_scene('My Bedroom', 'Normal', 1)
+                self.Lights.on()
             elif event == 'Lights Off':
-                self.Hue_Hub.set_group('My Bedroom', 'on', False)
+                self.Lights.off()
             elif event == 'Backlight Scene':
-                self.Hue_Hub.run_scene('My Bedroom', 'Backlight', 1)
+                self.Lights.set_scene('Backlight')
             elif event == 'Heater Toggle':
                 self.smart_plug_toggle(self.Heater)
             elif event == 'Set audio to Speaker':
