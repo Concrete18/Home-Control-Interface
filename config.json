@@ -1,0 +1,11 @@
+{
+    "Settings":{
+        "check_pi_status":1,
+        "computer_status_interval":1,
+        "debug":0
+    },
+    "IP_Addresses":{
+        "hue_hub":"192.168.0.134",
+        "rasp_pi":"192.168.0.116"
+    }
+}
