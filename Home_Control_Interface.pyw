@@ -33,7 +33,7 @@ class Smart_Hub:
                     print('> Heater Found')
                     self.Heater = SmartPlug(ip[0])
                     self.heater_plugged_in = 1
-                if 'tv light house' in str(dev).lower():
+                if 'vr device' in str(dev).lower():
                     print('> Lighthouse Found')
                     self.Lighthouse = SmartPlug(ip[0])
                     self.lighthouse_plugged_in = 1
@@ -169,7 +169,7 @@ class Home:
                     self.Heater = SmartPlug(ip[0])
                     self.heater_plugged_in = 1
                     found_plug = 1
-                if 'tv light house' in str(dev).lower():
+                if 'vr device' in str(dev).lower():
                     print('> Lighthouse Found')
                     self.Lighthouse = SmartPlug(ip[0])
                     self.lighthouse_plugged_in = 1
@@ -449,7 +449,7 @@ class Home:
         StartVRButton.grid(column=0, row=9, padx=pad_x, pady=pad_y)
 
         self.LighthouseButton = Button(VRFrame, text="Lighthouse Toggle", state='disabled', font=("Arial", 19),
-            command=lambda: self.smart_plug_toggle(name='Lighthouse', device=self.Lighthouse,
+            command=lambda: self.smart_plug_toggle(name='VR Device', device=self.Lighthouse,
             button=self.LighthouseButton), width=15)
         self.LighthouseButton.grid(column=1, row=9, padx=pad_x, pady=pad_y)
 
