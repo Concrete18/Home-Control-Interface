@@ -193,7 +193,10 @@ class Home:
         ]
         # togglable options
         if self.heater_plugged_in:
-            buttons.extend(['Heater Toggle', '---'])
+            buttons.append('Heater Toggle')
+        if self.lighthouse_plugged_in:
+            buttons.append('Lighthouse Toggle')
+        buttons.append('---')
         # end of options
         buttons.append('Exit')
         # tray object creation
@@ -541,12 +544,14 @@ class Home:
                 self.Lights.off()
             elif event == 'Backlight Scene':
                 self.Lights.set_scene('Backlight')
-            elif event == 'Heater Toggle':
-                self.smart_plug_toggle(self.Heater)
             elif event == 'Set audio to Speaker':
                 self.set_sound_device('Logitech Speakers')
             elif event == 'Set audio to Headphones':
                 self.set_sound_device('Headphones')
+            elif event == 'Lighthouse Toggle':
+                self.smart_plug_toggle(self.Lighthouse)
+            elif event == 'Heater Toggle':
+                self.smart_plug_toggle(self.Heater)
             elif event == '__ACTIVATED__':
                 self.create_window()
 
