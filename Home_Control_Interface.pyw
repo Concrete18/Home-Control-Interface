@@ -1,67 +1,10 @@
 from tkinter import Tk, Button, Label, LabelFrame, messagebox
 import tkinter as tk
-import psutil, time, sys, os, socket, threading, subprocess, re, json
+import psutil, time, os, socket, threading, subprocess, re, json
 from pyHS100 import SmartPlug, Discover
 import PySimpleGUIWx as sg
-from time import sleep
-from ahk import AHK
 from classes.lights import Lights
-
-
-# WIP started progress on Smart_Hub class. This is not in use yet
-class Smart_Hub:
-
-
-    def __init__(self, LighthouseButton, HeaterButton, window_title):
-        self.LighthouseButton = LighthouseButton
-        self.HeaterButton = HeaterButton
-        self.window_title = window_title
-
-
-    def discover_smart_plugs(self):
-        '''
-        Finds all smart plugs on the network and turns on ones used within this script if its name shows up.
-        '''
-        print('Checking for active smart plugs:')
-        self.lighthouse_plugged_in = 0
-        self.heater_plugged_in = 0
-        pattern = "\d{1,3}.\d{1,3}\.\d{1,3}\.\d{1,3}"
-        for dev in Discover.discover().values():
-            ip = re.findall(pattern, str(dev))
-            if len(ip) > 0:
-                if 'heater' in str(dev).lower():
-                    print('> Heater Found')
-                    self.Heater = SmartPlug(ip[0])
-                    self.heater_plugged_in = 1
-                if 'vr device' in str(dev).lower():
-                    print('> Lighthouse Found')
-                    self.Lighthouse = SmartPlug(ip[0])
-                    self.lighthouse_plugged_in = 1
-
-
-    def plug_state_check(self):
-        '''
-        Gets current state of entered device and updates button relief.
-        '''
-        def callback():
-            buttons = {}
-            if self.lighthouse_plugged_in:
-                buttons[self.Lighthouse] = self.LighthouseButton
-                self.LighthouseButton.config(state='normal')
-            if self.heater_plugged_in:
-                buttons[self.Heater] = self.HeaterButton
-                self.HeaterButton.config(state='normal')
-            for device, button in buttons.items():
-                try:
-                    if device.get_sysinfo()["relay_state"] == 1:
-                        button.config(relief='sunken')  # On State
-                    else:
-                        button.config(relief='raised')  # Off State
-                except Exception as e:
-                    print('Smart Plug', e)
-                    messagebox.showwarning(title=self.window_title, message=f'Error communicating with {device}.')
-        pi_thread = threading.Thread(target=callback, daemon=True)
-        pi_thread.start()
+from classes.computer import Computer
 
 
 class Home:
@@ -79,15 +22,14 @@ class Home:
     icon = 'bulb.ico'
     window_title = 'Home Control Interface'
     window_state = 0
-    # device init
-    Lights = Lights()
-    rasp_pi = data['IP_Addresses']['rasp_pi']
-    # ahk
-    ahk = AHK(executable_path='C:/Program Files/AutoHotkey/AutoHotkey.exe')
+    # classes init
+    lights = Lights()
+    computer = Computer()
     # python scripts
     switch_to_abc = "D:/Google Drive/Coding/Python/Scripts/1-Complete-Projects/Roku-Control/Instant_Set_to_ABC.py"
     timed_shutdown = "D:/Google Drive/Coding/Python/Scripts/1-Complete-Projects/Timed-Shutdown/Timed_Shutdown.pyw"
     # Status vars
+    rasp_pi = data['IP_Addresses']['rasp_pi']
     rpi_status = 'Checking Status'
     boot_time = psutil.boot_time()
     # tray buttons
@@ -137,7 +79,9 @@ class Home:
             buttons.append('Lighthouse Toggle')
         if self.heater_plugged_in:
             buttons.append('Heater Toggle')
-        buttons.append('---')
+        # adds the separator only if it is no already the last entry
+        if buttons[len(buttons)-1] != '---':
+            buttons.append('---')
         # end of options
         buttons.append('Exit')
         # tray object creation
@@ -149,15 +93,18 @@ class Home:
 
 
     def update_tray(self):
+        '''
+        Gets tray action updates.
+        '''
         event = self.Tray.Read()
         if event == 'Exit':
             exit()
         elif event == 'Lights On':
-            self.Lights.on()
+            self.lights.on()
         elif event == 'Lights Off':
-            self.Lights.off()
+            self.lights.off()
         elif event == 'Backlight Scene':
-            self.Lights.set_scene('Backlight')
+            self.lights.set_scene('Backlight')
         elif event == 'Heater Toggle':
             self.smart_plug_toggle(self.Heater)
         elif event == '__ACTIVATED__':
@@ -165,40 +112,13 @@ class Home:
         self.Home_Interface.after(0, self.update_tray)
 
 
-    @staticmethod
-    def readable_time_since(seconds):
-        '''
-        Returns time since based on seconds argument in the unit of time that makes the most sense
-        rounded to 1 decimal place.
-        '''
-        if seconds < (60 * 60):  # seconds in minute * minutes in hour
-            minutes = round(seconds / 60, 1)  # seconds in a minute
-            return f'{minutes} minutes'
-        elif seconds < (60 * 60 * 24):  # seconds in minute * minutes in hour * hours in a day
-            hours = round(seconds / (60 * 60), 1)  # seconds in minute * minutes in hour
-            return f'{hours} hours'
-        else:
-            days = round(seconds / 86400, 1)  # seconds in minute * minutes in hour * hours in a day
-            return f'{days} days'
-
-
-    def check_pi(self):
-        '''
-        Sets rpi_status based on if the Pi is online or not.
-        '''
-        if self.check_pi_status == 1:
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            result = sock.connect_ex((self.rasp_pi, 22))
-            if result == 0:
-                self.rpi_status = 'Online'
-            else:
-                self.rpi_status = 'Offline'
-
-
     def check_computer_status(self):
+        '''
+        Gets and updates vars to computer stats.
+        '''
         mem = psutil.virtual_memory()
         virt_mem = f'{round(mem.used/1024/1024/1024, 1)}/{round(mem.total/1024/1024/1024, 1)}'
-        self.uptime.set(self.readable_time_since(int(time.time() - self.boot_time)))
+        self.uptime.set(self.computer.readable_time_since(int(time.time() - self.boot_time)))
         self.cpu_util.set(f'{psutil.cpu_percent(interval=0.1)}%')
         self.virt_mem.set(f'{virt_mem} GB')
         self.Home_Interface.after(self.computer_status_interval*1000, self.check_computer_status)
@@ -226,49 +146,13 @@ class Home:
         '''
         Runs SteamVR shortcut and turns on lighthouse plugged into smart plug for tracking if it is off.
         '''
-        self.Lights.on()
+        self.lights.on()
         if self.lighthouse_plugged_in and self.Lighthouse.get_sysinfo()["relay_state"] == 0:
             self.Lighthouse.turn_on()
             self.LighthouseButton.config(relief='sunken')
         steamvr_path = "D:/My Installed Games/Steam Games/steamapps/common/SteamVR/bin/win64/vrstartup.exe"
         if os.path.isfile(steamvr_path):
             subprocess.call(steamvr_path)
-
-
-    def set_sound_device(self, device):
-        '''
-        Set Sound Device Function. Requires AHK and NirCMD to work.
-        '''
-        if device == 'Headphones':
-            self.ahk.run_script(f'Run nircmd setdefaultsounddevice "{device}" 0', blocking=False)
-            self.ahk.run_script(f'Run nircmd setdefaultsounddevice "{device}" 2', blocking=False)
-            self.ahk.run_script(f'Run nircmd setdefaultsounddevice "Headset Microphone" 2', blocking=False)
-        else:
-            self.ahk.run_script(f'Run nircmd setdefaultsounddevice "{device}" 1', blocking=False)
-
-
-    def display_switch(self, mode):
-        '''
-        Switches display to the mode entered as an argument. Works for PC and TV mode.
-        '''
-        def callback(mode):
-            subprocess.call([f'{self.script_dir}/Batches/{mode} Mode.bat'])
-            sleep(10)
-            if mode == 'PC':
-                self.set_sound_device('Logitech Speakers')
-            else:
-                self.display_switch('SONY TV')
-            print(f'{mode} Mode Set')
-        Switch = threading.Thread(target=callback, args=(mode,))
-        Switch.start()
-
-
-    @staticmethod
-    def python_script_runner(script):
-        '''
-        Runs script using full path after changing the working directory in case of relative paths in script.
-        '''
-        subprocess.run([sys.executable, script], cwd=os.path.dirname(script))
 
 
     def create_window(self):
@@ -357,23 +241,23 @@ class Home:
 
         # Buttons
         LightsOn = Button(HueLightControlFrame, text="Lights On",
-            command=lambda: self.Lights.on(), font=("Arial", 19), width=15)
+            command=lambda: self.lights.on(), font=("Arial", 19), width=15)
         LightsOn.grid(column=0, row=1, padx=pad_x, pady=pad_y)
 
         TurnAllOff = Button(HueLightControlFrame, text="Lights Off",
-            command=lambda: self.Lights.off(), font=("Arial", 19), width=15)
+            command=lambda: self.lights.off(), font=("Arial", 19), width=15)
         TurnAllOff.grid(column=1, row=1, padx=pad_x, pady=pad_y)
 
         BackLight = Button(HueLightControlFrame, text="BackLight Mode",
-            command=lambda: self.Lights.set_scene('Backlight'), font=("Arial", 19), width=15)
+            command=lambda: self.lights.set_scene('Backlight'), font=("Arial", 19), width=15)
         BackLight.grid(column=0, row=2, padx=pad_x, pady=pad_y)
 
         DimmedMode = Button(HueLightControlFrame, text="Dimmed Mode",
-            command=lambda: self.Lights.set_scene('Dimmed'), font=("Arial", 19), width=15)
+            command=lambda: self.lights.set_scene('Dimmed'), font=("Arial", 19), width=15)
         DimmedMode.grid(column=1, row=2, padx=pad_x, pady=pad_y)
 
         Nightlight = Button(HueLightControlFrame, text="Night Light",
-            command=lambda: self.Lights.set_scene('Night light'), font=("Arial", 19), width=15)
+            command=lambda: self.lights.set_scene('Night light'), font=("Arial", 19), width=15)
         Nightlight.grid(column=0, row=3, padx=pad_x, pady=pad_y)
 
         self.HeaterButton = Button(SmartPlugControlFrame, text="Heater Toggle", font=("Arial", 19), width=15,
@@ -386,11 +270,11 @@ class Home:
         UnsetButton.grid(column=1, row=5, padx=pad_x, pady=pad_y)
 
         RokuButton = Button(Script_Shortcuts, text="Set Roku to ABC",
-            command=lambda: self.python_script_runner(self.switch_to_abc), font=("Arial", 19), width=15)
+            command=lambda: self.computer.python_script_runner(self.switch_to_abc), font=("Arial", 19), width=15)
         RokuButton.grid(column=0, row=0, padx=pad_x, pady=pad_y)
 
         TimerControl = Button(Script_Shortcuts, text="Power Control",
-            command=lambda: self.python_script_runner(self.timed_shutdown), font=("Arial", 19), width=15)
+            command=lambda: self.computer.python_script_runner(self.timed_shutdown), font=("Arial", 19), width=15)
         TimerControl.grid(column=1, row=0, padx=pad_x, pady=pad_y)
 
         StartVRButton = Button(VRFrame, text="Start VR",
@@ -402,31 +286,31 @@ class Home:
             button=self.LighthouseButton), width=15)
         self.LighthouseButton.grid(column=1, row=9, padx=pad_x, pady=pad_y)
 
-        SwitchToPCMode = Button(ProjectionFrame, text="PC Mode", command=lambda: self.display_switch('PC'),
-            font=("Arial", 19), width=15)
+        SwitchToPCMode = Button(ProjectionFrame, text="PC Mode", font=("Arial", 19), width=15,
+            command=lambda: self.computer.display_switch('PC', self.script_dir))
         SwitchToPCMode.grid(column=0, row=9, padx=pad_x, pady=pad_y)
 
-        SwitchToTVMode = Button(ProjectionFrame, text="TV Mode", command=lambda: self.display_switch('SONY TV'),
-            font=("Arial", 19), width=15)
+        SwitchToTVMode = Button(ProjectionFrame, text="TV Mode", font=("Arial", 19), width=15,
+            command=lambda: self.computer.display_switch('SONY TV', self.script_dir))
         SwitchToTVMode.grid(column=1, row=9, padx=pad_x, pady=pad_y)
 
         # computer specific setup
         current_pc = socket.gethostname()
         if current_pc == 'Aperture-Two':
             AudioToSpeakers = Button(AudioSettingsFrame, text="Speaker Audio",
-                command=lambda: self.set_sound_device('Logitech Speakers'), font=("Arial", 19), width=15)
+                command=lambda: self.computer.set_sound_device('Logitech Speakers'), font=("Arial", 19), width=15)
             AudioToSpeakers.grid(column=0, row=7, padx=pad_x, pady=pad_y)
 
             AudioToHeadphones = Button(AudioSettingsFrame, text="Headphone Audio",
-                command=lambda: self.set_sound_device('Headphones'), font=("Arial", 19),width=15)
+                command=lambda: self.computer.set_sound_device('Headphones'), font=("Arial", 19),width=15)
             AudioToHeadphones.grid(column=1, row=7, padx=pad_x, pady=pad_y)
         else:
             AudioToSpeakers = Button(AudioSettingsFrame, text="Speaker Audio",
-                command=lambda: self.set_sound_device('Speakers'), font=("Arial", 19), width=15)
+                command=lambda: self.computer.set_sound_device('Speakers'), font=("Arial", 19), width=15)
             AudioToSpeakers.grid(column=0, row=7, padx=pad_x, pady=pad_y)
 
             AudioToHeadphones = Button(AudioSettingsFrame, text="Headphone Audio",
-                command=lambda: self.set_sound_device('Aux'), font=("Arial", 19),width=15)
+                command=lambda: self.computer.set_sound_device('Aux'), font=("Arial", 19),width=15)
             AudioToHeadphones.grid(column=1, row=7, padx=pad_x, pady=pad_y)
             # disables buttons that dont work on laptop
             SwitchToPCMode.config(state='disabled')
@@ -485,15 +369,15 @@ class Home:
             if event == 'Exit':
                 exit()
             elif event == 'Lights On':
-                self.Lights.on()
+                self.lights.on()
             elif event == 'Lights Off':
-                self.Lights.off()
+                self.lights.off()
             elif event == 'Backlight Scene':
-                self.Lights.set_scene('Backlight')
+                self.lights.set_scene('Backlight')
             elif event == 'Set audio to Speaker':
-                self.set_sound_device('Logitech Speakers')
+                self.computer.set_sound_device('Logitech Speakers')
             elif event == 'Set audio to Headphones':
-                self.set_sound_device('Headphones')
+                self.computer.set_sound_device('Headphones')
             elif event == 'Lighthouse Toggle':
                 self.smart_plug_toggle(self.Lighthouse)
             elif event == 'Heater Toggle':
@@ -508,7 +392,7 @@ class Home:
         '''
         start = time.perf_counter()
         self.discover_smart_plugs()
-        threading.Thread(target=self.check_pi).start()
+        threading.Thread(target=self.computer.check_pi).start()
         self.setup_tray()
         finish = time.perf_counter()
         elapsed = round(finish-start, 2)
