@@ -3,9 +3,9 @@ import tkinter as tk
 import psutil, time, sys, os, socket, threading, subprocess, re, json
 from pyHS100 import SmartPlug, Discover
 import PySimpleGUIWx as sg
-from phue import Bridge
 from time import sleep
 from ahk import AHK
+from classes.lights import Lights
 
 
 # WIP started progress on Smart_Hub class. This is not in use yet
@@ -62,65 +62,6 @@ class Smart_Hub:
                     messagebox.showwarning(title=self.window_title, message=f'Error communicating with {device}.')
         pi_thread = threading.Thread(target=callback, daemon=True)
         pi_thread.start()
-
-
-class Lights:
-
-
-    with open('config.json') as json_file:
-        data = json.load(json_file)
-    hue_hub = Bridge(data['IP_Addresses']['hue_hub'])
-
-
-    def on(self):
-        '''
-        Sets all lights to on.
-        '''
-        print('Turning Lights On.')
-        self.hue_hub.run_scene('My Bedroom', 'Normal', 1)
-
-
-    def off(self):
-        '''
-        Sets all lights to off.
-        '''
-        print('Turning Lights Off.')
-        self.hue_hub.set_group('My Bedroom', 'on', False)
-
-
-    def set_scene(self, scene):
-        '''
-        Sets the Hue lights to the entered scene.
-        '''
-        print(f'Setting lights to {scene}.')
-        self.hue_hub.run_scene('My Bedroom', scene, 1)
-
-
-    def toggle_lights(self):
-        '''
-        Turns on all lights if they are all off or turns lights off if any are on.
-        '''
-        for lights in self.hue_hub.lights:
-            if self.hue_hub.get_light(lights.name, 'on'):
-                self.off()
-                return
-        self.on()
-
-
-    def run(self):
-        '''
-        Runs in CLI mode.
-        '''
-        try:
-            type = sys.argv[1].lower()
-        except IndexError:
-            type = 'toggle'
-        if type == 'toggle':
-            self.toggle_lights()
-        elif type == 'on':
-            self.on()
-        elif type == 'off':
-            self.off()
 
 
 class Home:
@@ -192,10 +133,10 @@ class Home:
             '---'
         ]
         # togglable options
-        if self.heater_plugged_in:
-            buttons.append('Heater Toggle')
         if self.lighthouse_plugged_in:
             buttons.append('Lighthouse Toggle')
+        if self.heater_plugged_in:
+            buttons.append('Heater Toggle')
         buttons.append('---')
         # end of options
         buttons.append('Exit')
@@ -298,7 +239,12 @@ class Home:
         '''
         Set Sound Device Function. Requires AHK and NirCMD to work.
         '''
-        self.ahk.run_script(f'Run nircmd setdefaultsounddevice "{device}" 1', blocking=False)
+        if device == 'Headphones':
+            self.ahk.run_script(f'Run nircmd setdefaultsounddevice "{device}" 0', blocking=False)
+            self.ahk.run_script(f'Run nircmd setdefaultsounddevice "{device}" 2', blocking=False)
+            self.ahk.run_script(f'Run nircmd setdefaultsounddevice "Headset Microphone" 2', blocking=False)
+        else:
+            self.ahk.run_script(f'Run nircmd setdefaultsounddevice "{device}" 1', blocking=False)
 
 
     def display_switch(self, mode):
