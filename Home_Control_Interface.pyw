@@ -26,13 +26,11 @@ class Home:
     lights = Lights()
     computer = Computer()
     # python scripts
-    switch_to_abc = "D:/Google Drive/Coding/Python/Scripts/1-Complete-Projects/Roku-Control/Instant_Set_to_ABC.py"
     timed_shutdown = "D:/Google Drive/Coding/Python/Scripts/1-Complete-Projects/Timed-Shutdown/Timed_Shutdown.pyw"
     # Status vars
     rasp_pi = data['IP_Addresses']['rasp_pi']
     rpi_status = 'Checking Status'
     boot_time = psutil.boot_time()
-    # tray buttons
 
 
     def discover_smart_plugs(self):
@@ -70,6 +68,7 @@ class Home:
             'Lights Off',
             'Backlight Scene',
             '---',
+            'Shutdown',
             'Set audio to Speaker',
             'Set audio to Headphones',
             '---'
@@ -90,26 +89,6 @@ class Home:
             filename=self.icon,
             tooltip=self.window_title)
         print('\nTray Setup')
-
-
-    def update_tray(self):
-        '''
-        Gets tray action updates.
-        '''
-        event = self.Tray.Read()
-        if event == 'Exit':
-            exit()
-        elif event == 'Lights On':
-            self.lights.on()
-        elif event == 'Lights Off':
-            self.lights.off()
-        elif event == 'Backlight Scene':
-            self.lights.set_scene('Backlight')
-        elif event == 'Heater Toggle':
-            self.smart_plug_toggle(self.Heater)
-        elif event == '__ACTIVATED__':
-            self.create_window()
-        self.Home_Interface.after(0, self.update_tray)
 
 
     def check_computer_status(self):
@@ -269,10 +248,6 @@ class Home:
             command='ph', font=("Arial", 19), width=15)
         UnsetButton.grid(column=1, row=5, padx=pad_x, pady=pad_y)
 
-        RokuButton = Button(Script_Shortcuts, text="Set Roku to ABC",
-            command=lambda: self.computer.python_script_runner(self.switch_to_abc), font=("Arial", 19), width=15)
-        RokuButton.grid(column=0, row=0, padx=pad_x, pady=pad_y)
-
         TimerControl = Button(Script_Shortcuts, text="Power Control",
             command=lambda: self.computer.python_script_runner(self.timed_shutdown), font=("Arial", 19), width=15)
         TimerControl.grid(column=1, row=0, padx=pad_x, pady=pad_y)
@@ -320,7 +295,6 @@ class Home:
         #  Smart Plugs running through state check function.
         self.plug_state_check()
         self.check_computer_status()
-        # self.update_tray()
 
         # TODO Fix incorrect height
         if self.debug:
@@ -368,6 +342,8 @@ class Home:
             event = self.Tray.Read()
             if event == 'Exit':
                 exit()
+            elif event == 'Shutdown':
+                self.computer.shutdown(self.Home_Interface)
             elif event == 'Lights On':
                 self.lights.on()
             elif event == 'Lights Off':

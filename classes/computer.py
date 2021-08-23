@@ -1,5 +1,7 @@
+import sys, subprocess, threading, socket, time, json, os
+import tkinter as tk
+from tkinter import messagebox
 from ahk import AHK
-import sys, subprocess, threading, socket, psutil, time, json, os
 
 class Computer:
 
@@ -12,6 +14,19 @@ class Computer:
     rasp_pi = data['IP_Addresses']['rasp_pi']
     # ahk
     ahk = AHK(executable_path='C:/Program Files/AutoHotkey/AutoHotkey.exe')
+
+
+    def shutdown(self):
+        '''
+        Shutdown the PC after running some other custom commands.
+        '''
+        # TODO add proper icon or new window type without using messagebox
+        tk.Tk().withdraw()
+        response = messagebox.askquestion(title='Shutdown', message=f'Do you want to run custom shutdown?.')
+        print(response)
+        if response == 'yes':
+            print('Shutting Down')
+            # os.system("shutdown /s /t 1")
 
 
     def set_sound_device(self, device):
