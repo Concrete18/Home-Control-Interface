@@ -1,10 +1,10 @@
 from tkinter import Tk, Button, Label, LabelFrame, messagebox
 import tkinter as tk
-import psutil, time, os, socket, threading, subprocess, re, json
-from pyHS100 import SmartPlug, Discover
+import psutil, time, os, socket, threading, subprocess, json
 import PySimpleGUIWx as sg
 from classes.lights import Lights
 from classes.computer import Computer
+from classes.smartplugs import Smart_Plug
 
 
 class Home:
@@ -25,38 +25,13 @@ class Home:
     # classes init
     lights = Lights()
     computer = Computer()
+    plug = Smart_Plug()
     # python scripts
     timed_shutdown = "D:/Google Drive/Coding/Python/Scripts/1-Complete-Projects/Timed-Shutdown/Timed_Shutdown.pyw"
     # Status vars
     rasp_pi = data['IP_Addresses']['rasp_pi']
     rpi_status = 'Checking Status'
     boot_time = psutil.boot_time()
-
-
-    def discover_smart_plugs(self):
-        '''
-        Finds all smart plugs on the network and turns on ones used within this script if its name shows up.
-        '''
-        print('Checking for active smart plugs:')
-        self.lighthouse_plugged_in = 0
-        self.heater_plugged_in = 0
-        found_plug = 0
-        pattern = "\d{1,3}.\d{1,3}\.\d{1,3}\.\d{1,3}"
-        for dev in Discover.discover().values():
-            ip = re.findall(pattern, str(dev))
-            if len(ip) > 0:
-                if 'heater' in str(dev).lower():
-                    print('> Heater Found')
-                    self.Heater = SmartPlug(ip[0])
-                    self.heater_plugged_in = 1
-                    found_plug = 1
-                if 'vr device' in str(dev).lower():
-                    print('> Lighthouse Found')
-                    self.Lighthouse = SmartPlug(ip[0])
-                    self.lighthouse_plugged_in = 1
-                    found_plug = 1
-        if found_plug is False:
-            print('> None found')
 
 
     def setup_tray(self):
@@ -74,9 +49,9 @@ class Home:
             '---'
         ]
         # togglable options
-        if self.lighthouse_plugged_in:
+        if self.plug.lighthouse_plugged_in:
             buttons.append('Lighthouse Toggle')
-        if self.heater_plugged_in:
+        if self.plug.heater_plugged_in:
             buttons.append('Heater Toggle')
         # adds the separator only if it is no already the last entry
         if buttons[len(buttons)-1] != '---':
@@ -103,31 +78,13 @@ class Home:
         self.Home_Interface.after(self.computer_status_interval*1000, self.check_computer_status)
 
 
-    @staticmethod
-    def smart_plug_toggle(device, name='device', button=0):
-        '''
-        Smart Plug toggle function.
-        '''
-        try:
-            if device.get_sysinfo()["relay_state"] == 0:
-                device.turn_on()
-                if button != 0:
-                    button.config(relief='sunken')  # On State
-            else:
-                device.turn_off()
-                if button != 0:
-                    button.config(relief='raised')  # Off State
-        except Exception as error:
-            print(f'Error toggling device\n{error}\n{name}')
-
-
     def start_vr(self):
         '''
         Runs SteamVR shortcut and turns on lighthouse plugged into smart plug for tracking if it is off.
         '''
         self.lights.on()
-        if self.lighthouse_plugged_in and self.Lighthouse.get_sysinfo()["relay_state"] == 0:
-            self.Lighthouse.turn_on()
+        if self.plug.lighthouse_plugged_in and self.plug.Lighthouse.get_sysinfo()["relay_state"] == 0:
+            self.plug.Lighthouse.turn_on()
             self.LighthouseButton.config(relief='sunken')
         steamvr_path = "D:/My Installed Games/Steam Games/steamapps/common/SteamVR/bin/win64/vrstartup.exe"
         if os.path.isfile(steamvr_path):
@@ -240,7 +197,7 @@ class Home:
         Nightlight.grid(column=0, row=3, padx=pad_x, pady=pad_y)
 
         self.HeaterButton = Button(SmartPlugControlFrame, text="Heater Toggle", font=("Arial", 19), width=15,
-            command=lambda: self.smart_plug_toggle(name='Heater', device=self.Heater, button=self.HeaterButton),
+            command=lambda: self.plug.toggle(name='Heater', device=self.plug.Heater, button=self.HeaterButton),
             state='disabled')
         self.HeaterButton.grid(column=0, row=5, padx=pad_x, pady=pad_y)
 
@@ -257,7 +214,7 @@ class Home:
         StartVRButton.grid(column=0, row=9, padx=pad_x, pady=pad_y)
 
         self.LighthouseButton = Button(VRFrame, text="Lighthouse Toggle", state='disabled', font=("Arial", 19),
-            command=lambda: self.smart_plug_toggle(name='VR Device', device=self.Lighthouse,
+            command=lambda: self.plug.toggle(name='VR Device', device=self.plug.Lighthouse,
             button=self.LighthouseButton), width=15)
         self.LighthouseButton.grid(column=1, row=9, padx=pad_x, pady=pad_y)
 
@@ -311,11 +268,11 @@ class Home:
         '''
         def callback():
             buttons = {}
-            if self.lighthouse_plugged_in:
-                buttons[self.Lighthouse] = self.LighthouseButton
+            if self.plug.lighthouse_plugged_in:
+                buttons[self.plug.Lighthouse] = self.LighthouseButton
                 self.LighthouseButton.config(state='normal')
-            if self.heater_plugged_in:
-                buttons[self.Heater] = self.HeaterButton
+            if self.plug.heater_plugged_in:
+                buttons[self.plug.Heater] = self.HeaterButton
                 self.HeaterButton.config(state='normal')
             for device, button in buttons.items():
                 try:
@@ -355,9 +312,9 @@ class Home:
             elif event == 'Set audio to Headphones':
                 self.computer.set_sound_device('Headphones')
             elif event == 'Lighthouse Toggle':
-                self.smart_plug_toggle(self.Lighthouse)
+                self.plug.toggle(self.plug.Lighthouse)
             elif event == 'Heater Toggle':
-                self.smart_plug_toggle(self.Heater)
+                self.plug.toggle(self.plug.Heater)
             elif event == '__ACTIVATED__':
                 self.create_window()
 
@@ -367,7 +324,7 @@ class Home:
         Runs main script functions.
         '''
         start = time.perf_counter()
-        self.discover_smart_plugs()
+        self.plug.discover()
         threading.Thread(target=self.computer.check_pi).start()
         self.setup_tray()
         finish = time.perf_counter()
