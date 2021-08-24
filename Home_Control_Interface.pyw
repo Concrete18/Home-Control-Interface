@@ -300,7 +300,7 @@ class Home:
             if event == 'Exit':
                 exit()
             elif event == 'Shutdown':
-                self.computer.shutdown(self.Home_Interface)
+                self.computer.shutdown()
             elif event == 'Lights On':
                 self.lights.on()
             elif event == 'Lights Off':

@@ -26,7 +26,7 @@ class Computer:
         print(response)
         if response == 'yes':
             print('Shutting Down')
-            # os.system("shutdown /s /t 1")
+            os.system("shutdown /s /t 1")
 
 
     def set_sound_device(self, device):
