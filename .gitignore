@@ -142,3 +142,5 @@ dmypy.json
 /Home Control Interface.lnk
 /LightsToggle.pyw
 .vscode
+*visualelementsmanifest.xml
+*mytile*
