@@ -19,7 +19,7 @@ class Home:
     check_pi_status = data['Settings']['check_pi_status']
     computer_status_interval = data['Settings']['computer_status_interval']  # interval in seconds
     # defaults
-    icon = 'images\bulb.ico'
+    icon = 'images/bulb.ico'
     window_title = 'Home Control Interface'
     window_state = 0
     # classes init
