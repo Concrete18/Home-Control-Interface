@@ -19,7 +19,7 @@ class Home:
     check_pi_status = data['Settings']['check_pi_status']
     computer_status_interval = data['Settings']['computer_status_interval']  # interval in seconds
     # defaults
-    icon = 'bulb.ico'
+    icon = 'images\bulb.ico'
     window_title = 'Home Control Interface'
     window_state = 0
     # classes init
@@ -297,26 +297,30 @@ class Home:
         print('Tray Created\n')
         while True:
             event = self.Tray.Read()
+            # general
             if event == 'Exit':
                 exit()
-            elif event == 'Shutdown':
-                self.computer.shutdown()
+            elif event == '__ACTIVATED__':
+                self.create_window()
+            # lights
             elif event == 'Lights On':
                 self.lights.on()
             elif event == 'Lights Off':
                 self.lights.off()
             elif event == 'Backlight Scene':
                 self.lights.set_scene('Backlight')
+            # computer
+            elif event == 'Shutdown':
+                self.computer.shutdown()
             elif event == 'Set audio to Speaker':
                 self.computer.set_sound_device('Logitech Speakers')
             elif event == 'Set audio to Headphones':
                 self.computer.set_sound_device('Headphones')
+            # smart plugs
             elif event == 'Lighthouse Toggle':
                 self.plug.toggle(self.plug.Lighthouse)
             elif event == 'Heater Toggle':
                 self.plug.toggle(self.plug.Heater)
-            elif event == '__ACTIVATED__':
-                self.create_window()
 
 
     def run(self):

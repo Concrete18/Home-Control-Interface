@@ -10,7 +10,7 @@ Click Taskbar Icon to bring up the interface and right click the icon and click 
 * VR start functionality that sets up room and PC for VR.
 * Shortcuts to some other scripts. (Listed Below)
 * Power Control Settings via another app. (Not in Repo)
-[Timed Shutdown and Sleep](https://github.com/Concrete18/Timed-Shutdown-Sleep)
+[Timed Shutdown and Sleep](https://github.com/Concrete18/images/Timed-Shutdown-Sleep)
 
 ## Coding Techniques used
 
