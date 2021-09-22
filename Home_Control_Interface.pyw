@@ -223,7 +223,7 @@ class Home:
         SwitchToPCMode.grid(column=0, row=9, padx=pad_x, pady=pad_y)
 
         SwitchToTVMode = Button(ProjectionFrame, text="TV Mode", font=("Arial", 19), width=15,
-            command=lambda: self.computer.display_switch('SONY TV', self.script_dir))
+            command=lambda: self.computer.display_switch('TV', self.script_dir))
         SwitchToTVMode.grid(column=1, row=9, padx=pad_x, pady=pad_y)
 
         # computer specific setup

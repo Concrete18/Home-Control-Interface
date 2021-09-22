@@ -53,13 +53,14 @@ class Computer:
         '''
         Switches display to the mode entered as an argument. Works for PC and TV mode.
         '''
+        print(script_dir)
         def callback(mode):
             subprocess.call([f'{script_dir}/Batches/{mode} Mode.bat'])
             time.sleep(10)
             if mode == 'PC':
                 self.set_sound_device('Logitech Speakers')
             else:
-                self.display_switch('SONY TV')
+                self.set_sound_device('SONY TV')
             print(f'{mode} Mode Set')
         Switch = threading.Thread(target=callback, args=(mode,))
         Switch.start()
