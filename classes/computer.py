@@ -56,10 +56,10 @@ class Computer:
         print(script_dir)
         def callback(mode):
             subprocess.call([f'{script_dir}/Batches/{mode} Mode.bat'])
-            time.sleep(10)
             if mode == 'PC':
                 self.set_sound_device('Logitech Speakers')
             else:
+                time.sleep(10)
                 self.set_sound_device('SONY TV')
             print(f'{mode} Mode Set')
         Switch = threading.Thread(target=callback, args=(mode,))
@@ -94,3 +94,8 @@ class Computer:
         else:
             days = round(seconds / 86400, 1)  # seconds in minute * minutes in hour * hours in a day
             return f'{days} days'
+
+
+app = Computer()
+app.check_pi()
+print(app.rpi_status)

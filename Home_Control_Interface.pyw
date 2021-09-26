@@ -102,7 +102,7 @@ class Home:
         self.virt_mem = tk.StringVar()
         self.virt_mem.set('Checking')
         self.pi_status = tk.StringVar()
-        self.pi_status.set(self.rpi_status)
+        self.pi_status.set(self.computer.rpi_status)
         window_height = 724
         window_width = 1108
         height = int((self.Home_Interface.winfo_screenheight()-window_height)/2)
