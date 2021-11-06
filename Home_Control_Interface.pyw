@@ -223,7 +223,7 @@ class Home:
         SwitchToPCMode.grid(column=0, row=9, padx=pad_x, pady=pad_y)
 
         SwitchToTVMode = Button(ProjectionFrame, text="TV Mode", font=("Arial", 19), width=15,
-            command=lambda: self.computer.display_switch('TV', self.script_dir))
+            command=lambda: self.computer.display_switch('TV', self.script_dir, self.Home_Interface))
         SwitchToTVMode.grid(column=1, row=9, padx=pad_x, pady=pad_y)
 
         # computer specific setup
@@ -311,6 +311,7 @@ class Home:
                 self.lights.set_scene('Backlight')
             # computer
             elif event == 'Shutdown':
+                self.plug.turn_off_plug(self.plug.Lighthouse)
                 self.computer.shutdown()
             elif event == 'Set audio to Speaker':
                 self.computer.set_sound_device('Logitech Speakers')

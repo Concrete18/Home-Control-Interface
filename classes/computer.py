@@ -49,7 +49,7 @@ class Computer:
         subprocess.run([sys.executable, script], cwd=os.path.dirname(script))
 
 
-    def display_switch(self, mode, script_dir):
+    def display_switch(self, mode, script_dir, root_window=None):
         '''
         Switches display to the mode entered as an argument. Works for PC and TV mode.
         '''
@@ -64,6 +64,8 @@ class Computer:
             print(f'{mode} Mode Set')
         Switch = threading.Thread(target=callback, args=(mode,))
         Switch.start()
+        if root_window != None:
+            root_window.destroy()
 
 
     def check_pi(self):

@@ -54,3 +54,16 @@ class Smart_Plug:
                     button.config(relief='raised')  # Off State
         except Exception as error:
             print(f'Error toggling device\n{error}\n{name}')
+
+
+
+    @staticmethod
+    def turn_off_plug(device, name='device', button=0):
+        '''
+        Smart Plug toggle function.
+        '''
+        try:
+            if device.get_sysinfo()["relay_state"] == 1:
+                device.turn_off()
+        except Exception as error:
+            print(f'Error toggling device\n{error}\n{name}')

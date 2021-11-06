@@ -57,3 +57,6 @@ class Lights:
             self.on()
         elif type == 'off':
             self.off()
+
+if __name__ == "__main__":
+    Lights().toggle_lights()
