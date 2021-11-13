@@ -66,10 +66,9 @@ class Home:
             tooltip=self.window_title)
         print('\nTray Setup')
 
-
     def run_hotkey_loop(self):
-        keyboard.add_hotkey('a', lambda: keyboard.write('Geek'))
-
+        keyboard.add_hotkey('Alt + L', self.lights.toggle_lights)
+        keyboard.add_hotkey('Alt + B', lambda: self.lights.set_scene('Backlight'))
 
     def check_computer_status(self):
         '''
@@ -334,6 +333,7 @@ class Home:
         Runs main script functions.
         '''
         start = time.perf_counter()
+        self.run_hotkey_loop()
         self.plug.discover()
         threading.Thread(target=self.computer.check_pi).start()
         self.setup_tray()
