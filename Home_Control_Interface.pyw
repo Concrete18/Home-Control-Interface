@@ -5,6 +5,7 @@ import PySimpleGUIWx as sg
 from classes.lights import Lights
 from classes.computer import Computer
 from classes.smartplugs import Smart_Plug
+import keyboard
 
 
 class Home:
@@ -64,6 +65,10 @@ class Home:
             filename=self.icon,
             tooltip=self.window_title)
         print('\nTray Setup')
+
+
+    def run_hotkey_loop(self):
+        keyboard.add_hotkey('a', lambda: keyboard.write('Geek'))
 
 
     def check_computer_status(self):
