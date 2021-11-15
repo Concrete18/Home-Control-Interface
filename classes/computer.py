@@ -5,6 +5,7 @@ from ahk import AHK
 
 class Computer:
 
+
     with open('config.json') as json_file:
         data = json.load(json_file)
     # settings
@@ -28,7 +29,6 @@ class Computer:
             print('Shutting Down')
             os.system("shutdown /s /t 1")
 
-
     def set_sound_device(self, device):
         '''
         Set Sound Device Function. Requires AHK and NirCMD to work.
@@ -40,14 +40,12 @@ class Computer:
         else:
             self.ahk.run_script(f'Run nircmd setdefaultsounddevice "{device}" 1', blocking=False)
 
-
     @staticmethod
     def python_script_runner(script):
         '''
         Runs script using full path after changing the working directory in case of relative paths in script.
         '''
         subprocess.run([sys.executable, script], cwd=os.path.dirname(script))
-
 
     def display_switch(self, mode, script_dir, root_window=None):
         '''
@@ -67,7 +65,6 @@ class Computer:
         if root_window != None:
             root_window.destroy()
 
-
     def check_pi(self):
         '''
         Sets rpi_status based on if the Pi is online or not.
@@ -79,7 +76,6 @@ class Computer:
                 self.rpi_status = 'Online'
             else:
                 self.rpi_status = 'Offline'
-
 
     @staticmethod
     def readable_time_since(seconds):

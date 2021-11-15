@@ -1,14 +1,14 @@
 from tkinter import Tk, Button, Label, LabelFrame, messagebox
 import tkinter as tk
-import psutil, time, os, socket, threading, subprocess, json
+import psutil, time, os, socket, threading, subprocess, json, keyboard
 import PySimpleGUIWx as sg
 from classes.lights import Lights
 from classes.computer import Computer
 from classes.smartplugs import Smart_Plug
-import keyboard
 
 
 class Home:
+
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
     os.chdir(script_dir)
@@ -67,9 +67,22 @@ class Home:
         print('\nTray Setup')
 
     def run_hotkey_loop(self):
+        '''
+        Adds global hotkeys.
+        '''
         keyboard.add_hotkey('Alt + L', self.lights.toggle_lights)
         keyboard.add_hotkey('Alt + B', lambda: self.lights.set_scene('Backlight'))
-
+        keyboard.add_hotkey('Alt + P', lambda: self.computer.display_switch('PC', self.script_dir))
+        if self.plug.heater_plugged_in:
+            keyboard.add_hotkey(
+                'Alt + B',
+                lambda: self.plug.toggle(
+                    name='Heater',
+                    device=self.plug.Heater,
+                    button=self.HeaterButton
+                    )
+                )
+            
     def check_computer_status(self):
         '''
         Gets and updates vars to computer stats.
@@ -80,7 +93,6 @@ class Home:
         self.cpu_util.set(f'{psutil.cpu_percent(interval=0.1)}%')
         self.virt_mem.set(f'{virt_mem} GB')
         self.Home_Interface.after(self.computer_status_interval*1000, self.check_computer_status)
-
 
     def start_vr(self):
         '''
@@ -93,7 +105,6 @@ class Home:
         steamvr_path = "D:/My Installed Games/Steam Games/steamapps/common/SteamVR/bin/win64/vrstartup.exe"
         if os.path.isfile(steamvr_path):
             subprocess.call(steamvr_path)
-
 
     def create_window(self):
         '''
@@ -265,7 +276,6 @@ class Home:
 
         self.Home_Interface.mainloop()
 
-
     def plug_state_check(self):
         '''
         Gets current state of entered device and updates button relief.
@@ -289,7 +299,6 @@ class Home:
                     messagebox.showwarning(title=self.window_title, message=f'Error communicating with {device}.')
         pi_thread = threading.Thread(target=callback, daemon=True)
         pi_thread.start()
-
 
     def create_tray(self):
         '''
@@ -327,14 +336,13 @@ class Home:
             elif event == 'Heater Toggle':
                 self.plug.toggle(self.plug.Heater)
 
-
     def run(self):
         '''
         Runs main script functions.
         '''
         start = time.perf_counter()
-        self.run_hotkey_loop()
         self.plug.discover()
+        self.run_hotkey_loop()
         threading.Thread(target=self.computer.check_pi).start()
         self.setup_tray()
         finish = time.perf_counter()

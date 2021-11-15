@@ -15,7 +15,6 @@ class Lights:
         print('Turning Lights On.')
         self.hue_hub.run_scene('My Bedroom', 'Normal', 1)
 
-
     def off(self):
         '''
         Sets all lights to off.
@@ -23,14 +22,12 @@ class Lights:
         print('Turning Lights Off.')
         self.hue_hub.set_group('My Bedroom', 'on', False)
 
-
     def set_scene(self, scene):
         '''
         Sets the Hue lights to the entered scene.
         '''
         print(f'Setting lights to {scene}.')
         self.hue_hub.run_scene('My Bedroom', scene, 1)
-
 
     def toggle_lights(self):
         '''
@@ -41,7 +38,6 @@ class Lights:
                 self.off()
                 return
         self.on()
-
 
     def run(self):
         '''
@@ -57,6 +53,7 @@ class Lights:
             self.on()
         elif type == 'off':
             self.off()
+
 
 if __name__ == "__main__":
     Lights().toggle_lights()

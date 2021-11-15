@@ -1,6 +1,7 @@
 from pyHS100 import SmartPlug, Discover
 import re
 
+
 class Smart_Plug:
 
     lighthouse_plugged_in = False
@@ -37,7 +38,6 @@ class Smart_Plug:
         if found_plug is False:
             print('> None found')
 
-
     @staticmethod
     def toggle(device, name='device', button=0):
         '''
@@ -54,8 +54,6 @@ class Smart_Plug:
                     button.config(relief='raised')  # Off State
         except Exception as error:
             print(f'Error toggling device\n{error}\n{name}')
-
-
 
     @staticmethod
     def turn_off_plug(device, name='device', button=0):
