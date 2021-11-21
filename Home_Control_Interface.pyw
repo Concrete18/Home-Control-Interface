@@ -1,6 +1,8 @@
 from tkinter import Tk, Button, Label, LabelFrame, messagebox
 import tkinter as tk
-import psutil, time, os, socket, threading, subprocess, json, keyboard
+import psutil, time, os, socket, threading, subprocess, json, winsound
+import keyboard as kb
+import global_hotkeys as gh
 import PySimpleGUIWx as sg
 from classes.lights import Lights
 from classes.computer import Computer
@@ -70,19 +72,25 @@ class Home:
         '''
         Adds global hotkeys.
         '''
-        keyboard.add_hotkey('Alt + L', self.lights.toggle_lights)
-        keyboard.add_hotkey('Alt + B', lambda: self.lights.set_scene('Backlight'))
-        keyboard.add_hotkey('Alt + P', lambda: self.computer.display_switch('PC', self.script_dir))
-        if self.plug.heater_plugged_in:
-            keyboard.add_hotkey(
-                'Alt + B',
-                lambda: self.plug.toggle(
-                    name='Heater',
-                    device=self.plug.Heater,
-                    button=self.HeaterButton
-                    )
-                )
-            
+
+        def toggle_heater():
+            '''
+            Toggles heater if it is detected or a warning sound if not.
+            '''
+            if self.plug.heater_plugged_in:
+                self.plug.toggle(name='Heater', device=self.plug.Heater, button=self.HeaterButton)
+            else:
+                winsound.PlaySound("SystemExclamation", winsound.SND_ALIAS)
+
+        bindings = (
+            (("right_menu", "L"), None, self.lights.toggle_lights),
+            (("right_menu", "B"), None, lambda: self.lights.set_scene('Backlight')),
+            (("right_menu", "P"), None, lambda: self.computer.display_switch('PC', self.script_dir)),
+            (("right_menu", "H"), None, toggle_heater),
+        )
+        gh.register_hotkeys(bindings)
+        gh.start_checking_hotkeys()
+
     def check_computer_status(self):
         '''
         Gets and updates vars to computer stats.
