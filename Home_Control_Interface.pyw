@@ -1,7 +1,7 @@
 from tkinter import Tk, Button, Label, LabelFrame, messagebox
 import tkinter as tk
-import psutil, time, os, socket, threading, subprocess, json, winsound
-import keyboard as kb
+import psutil, time, os, socket, threading, subprocess, json
+from playsound import playsound
 import global_hotkeys as gh
 import PySimpleGUIWx as sg
 from classes.lights import Lights
@@ -80,7 +80,7 @@ class Home:
             if self.plug.heater_plugged_in:
                 self.plug.toggle(name='Heater', device=self.plug.Heater, button=self.HeaterButton)
             else:
-                winsound.PlaySound("SystemExclamation", winsound.SND_ALIAS)
+                playsound('Audio/Heater_not_found.wav')
 
         bindings = (
             (("right_menu", "L"), None, self.lights.toggle_lights),
