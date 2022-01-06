@@ -1,5 +1,6 @@
 from pyHS100 import SmartPlug, Discover
-import re
+from pathlib import Path
+import re, json
 
 
 class Smart_Plug:
@@ -21,22 +22,32 @@ class Smart_Plug:
         '''
         print('Checking for active smart plugs:')
         found_plug = False
+        data = {
+            'heater': False,
+            'lighthouse': False
+        }
         pattern = "\d{1,3}.\d{1,3}\.\d{1,3}\.\d{1,3}"
         for dev in Discover.discover().values():
-            ip = re.findall(pattern, str(dev))
+            ip = re.findall(pattern, str(dev))[0]
             if len(ip) > 0:
                 if 'heater' in str(dev).lower():
                     print('> Heater Found')
-                    self.Heater = SmartPlug(ip[0])
+                    self.Heater = SmartPlug(ip)
+                    data['heater'] = ip
                     self.heater_plugged_in = 1
                     found_plug = True
                 if 'vr device' in str(dev).lower():
                     print('> Lighthouse Found')
-                    self.Lighthouse = SmartPlug(ip[0])
+                    self.Lighthouse = SmartPlug(ip)
+                    data['lighthouse'] = ip
                     self.lighthouse_plugged_in = 1
                     found_plug = True
         if found_plug is False:
             print('> None found')
+        json_file = Path('data.json')
+        json_file.touch(exist_ok=True)
+        with open(json_file, 'r+') as file:
+            json.dump(data, file, indent=4)
 
     @staticmethod
     def toggle(device, name='device', button=0):

@@ -96,4 +96,3 @@ class Computer:
 
 app = Computer()
 app.check_pi()
-print(app.rpi_status)

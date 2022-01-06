@@ -1,9 +1,8 @@
 from tkinter import Tk, Button, Label, LabelFrame, messagebox
 import tkinter as tk
 import psutil, time, os, socket, threading, subprocess, json
-from playsound import playsound
-import global_hotkeys as gh
 import PySimpleGUIWx as sg
+from pathlib import Path
 from classes.lights import Lights
 from classes.computer import Computer
 from classes.smartplugs import Smart_Plug
@@ -47,6 +46,7 @@ class Home:
             'Backlight Scene',
             '---',
             'Shutdown',
+            'Reset Hotkeys',
             'Set audio to Speaker',
             'Set audio to Headphones',
             '---'
@@ -68,29 +68,6 @@ class Home:
             tooltip=self.window_title)
         print('\nTray Setup')
 
-    def run_hotkey_loop(self):
-        '''
-        Adds global hotkeys.
-        '''
-
-        def toggle_heater():
-            '''
-            Toggles heater if it is detected or a warning sound if not.
-            '''
-            if self.plug.heater_plugged_in:
-                self.plug.toggle(name='Heater', device=self.plug.Heater, button=self.HeaterButton)
-            else:
-                playsound('Audio/Heater_not_found.wav')
-
-        bindings = (
-            (("right_menu", "L"), None, self.lights.toggle_lights),
-            (("right_menu", "B"), None, lambda: self.lights.set_scene('Backlight')),
-            (("right_menu", "P"), None, lambda: self.computer.display_switch('PC', self.script_dir)),
-            (("right_menu", "H"), None, toggle_heater),
-        )
-        gh.register_hotkeys(bindings)
-        gh.start_checking_hotkeys()
-
     def check_computer_status(self):
         '''
         Gets and updates vars to computer stats.
@@ -110,9 +87,9 @@ class Home:
         if self.plug.lighthouse_plugged_in and self.plug.Lighthouse.get_sysinfo()["relay_state"] == 0:
             self.plug.Lighthouse.turn_on()
             self.LighthouseButton.config(relief='sunken')
-        steamvr_path = "D:/My Installed Games/Steam Games/steamapps/common/SteamVR/bin/win64/vrstartup.exe"
-        if os.path.isfile(steamvr_path):
-            subprocess.call(steamvr_path)
+        steamvr_shortcut = Path("D:/My Installed Games/Steam Games/steamapps/common/SteamVR/bin/win64/vrstartup.exe")
+        if steamvr_shortcut.isfile():
+            subprocess.call(steamvr_shortcut.name)
 
     def create_window(self):
         '''
@@ -350,7 +327,6 @@ class Home:
         '''
         start = time.perf_counter()
         self.plug.discover()
-        self.run_hotkey_loop()
         threading.Thread(target=self.computer.check_pi).start()
         self.setup_tray()
         finish = time.perf_counter()
