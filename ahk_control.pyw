@@ -1,12 +1,14 @@
 from pyHS100 import SmartPlug
-import sys, json, os
 from playsound import playsound
 from pathlib import Path
+import sys, json, os
 # classes
 from classes.lights import Lights
 from classes.computer import Computer
 
+
 class Hotkey:
+
 
     script_dir = os.path.dirname(os.path.abspath(__file__))
 
@@ -44,7 +46,6 @@ class Hotkey:
         except Exception as error:
             print(f'Error toggling device\n{error}')
 
-
     def run_command(self):
         '''
         Runs `command`.
@@ -55,7 +56,7 @@ class Hotkey:
             return
         command = sys.argv[1]
         if command == 'toggle_lights':
-            lights.toggle_lights()
+            lights.toggle_lights(mode='all')
         elif command == 'backlight':
             self.lights.set_scene('Backlight')
         elif command == 'switch_to_pc':
