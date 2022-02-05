@@ -29,15 +29,22 @@ class Lights:
         print(f'Setting lights to {scene}.')
         self.hue_hub.run_scene('My Bedroom', scene, 1)
 
-    def toggle_lights(self):
+    def toggle_lights(self, mode='any'):
         '''
         Turns on all lights if they are all off or turns lights off if any are on.
         '''
+        lights_on = 0
         for lights in self.hue_hub.lights:
             if self.hue_hub.get_light(lights.name, 'on'):
-                self.off()
-                return
-        self.on()
+                if mode == 'all':
+                    lights_on += 1
+                else:
+                    self.off()
+                    return
+        if lights_on == len(self.hue_hub.lights):
+            self.off()
+        else:
+            self.on()
 
     def run(self):
         '''
@@ -48,7 +55,7 @@ class Lights:
         except IndexError:
             type = 'toggle'
         if type == 'toggle':
-            self.toggle_lights()
+            self.toggle_lights(mode='any')
         elif type == 'on':
             self.on()
         elif type == 'off':
