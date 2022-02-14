@@ -56,7 +56,7 @@ class Hotkey:
             return
         command = sys.argv[1]
         if command == 'toggle_lights':
-            lights.toggle_lights(mode='all')
+            lights.toggle_lights(all=True)
         elif command == 'backlight':
             self.lights.set_scene('Backlight')
         elif command == 'switch_to_pc':

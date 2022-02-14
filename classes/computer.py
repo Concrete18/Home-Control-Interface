@@ -2,6 +2,7 @@ import sys, subprocess, threading, socket, time, json, os
 import tkinter as tk
 from tkinter import messagebox
 from ahk import AHK
+from pathlib import Path
 
 class Computer:
 
@@ -15,6 +16,7 @@ class Computer:
     rasp_pi = data['IP_Addresses']['rasp_pi']
     # ahk
     ahk = AHK(executable_path='C:/Program Files/AutoHotkey/AutoHotkey.exe')
+    logitech_options = Path('C:\ProgramData\Microsoft\Windows\Start Menu\Programs\Logitech\Logitech Options.lnk')
 
 
     def shutdown(self):
@@ -56,6 +58,8 @@ class Computer:
             subprocess.call([f'{script_dir}/Batches/{mode} Mode.bat'])
             if mode == 'PC':
                 self.set_sound_device('Logitech Speakers')
+                if self.logitech_options.exists:
+                    subprocess.call([self.logitech_options])
             else:
                 time.sleep(10)
                 self.set_sound_device('SONY TV')

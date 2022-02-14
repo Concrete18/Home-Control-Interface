@@ -4,4 +4,3 @@ pyHS100
 PySimpleGUIWx
 wxPython
 psutil
-keyboard
