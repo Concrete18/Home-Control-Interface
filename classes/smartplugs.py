@@ -20,12 +20,26 @@ class Smart_Plug:
         '''
         Finds all smart plugs on the network and turns on ones used within this script if its name shows up.
         '''
+
+        # {
+        #     "Settings":{
+        #         "check_pi_status":1,
+        #         "computer_status_interval":1,
+        #         "debug":0
+        #     },
+        #     "IP_Addresses":{
+        #         "hue_hub":"192.168.0.134",
+        #         "rasp_pi":"192.168.0.115",
+        #         "heater": "192.168.0.146",
+        #         "lighthouse": "192.168.0.197"
+        #     }
+        # }
+
+
         print('Checking for active smart plugs:')
         found_plug = False
-        data = {
-            'heater': False,
-            'lighthouse': False
-        }
+        with open('config.json') as json_file:
+            data = json.load(json_file)
         pattern = "\d{1,3}.\d{1,3}\.\d{1,3}\.\d{1,3}"
         for dev in Discover.discover().values():
             ip = re.findall(pattern, str(dev))[0]
@@ -33,18 +47,18 @@ class Smart_Plug:
                 if 'heater' in str(dev).lower():
                     print('> Heater Found')
                     self.Heater = SmartPlug(ip)
-                    data['heater'] = ip
+                    data['IP_Addresses']['heater'] = ip
                     self.heater_plugged_in = 1
                     found_plug = True
                 if 'vr device' in str(dev).lower():
                     print('> Lighthouse Found')
                     self.Lighthouse = SmartPlug(ip)
-                    data['lighthouse'] = ip
+                    data['IP_Addresses']['lighthouse'] = ip
                     self.lighthouse_plugged_in = 1
                     found_plug = True
         if found_plug is False:
             print('> None found')
-        json_file = Path('data.json')
+        json_file = Path('config.json')
         json_file.touch(exist_ok=True)
         with open(json_file, 'r+') as file:
             json.dump(data, file, indent=4)
