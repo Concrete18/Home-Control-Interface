@@ -1,11 +1,13 @@
 {
-    "Settings":{
-        "check_pi_status":1,
-        "computer_status_interval":1,
-        "debug":0
+    "Settings": {
+        "check_pi_status": 1,
+        "computer_status_interval": 1,
+        "debug": 0
     },
-    "IP_Addresses":{
-        "hue_hub":"192.168.0.134",
-        "rasp_pi":"192.168.0.115"
+    "IP_Addresses": {
+        "hue_hub": "192.168.0.134",
+        "rasp_pi": "192.168.0.115",
+        "heater": "192.168.0.146",
+        "lighthouse": "192.168.0.197"
     }
 }
