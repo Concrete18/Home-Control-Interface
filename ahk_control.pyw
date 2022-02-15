@@ -5,6 +5,7 @@ import sys, json, os
 # classes
 from classes.lights import Lights
 from classes.computer import Computer
+from classes.helper import benchmark
 
 
 class Hotkey:
@@ -48,7 +49,7 @@ class Hotkey:
         except Exception as error:
             print(f'Error toggling device\n{error}')
                 
-
+    @benchmark
     def run_command(self, command=None):
         '''
         Runs given `command`.
