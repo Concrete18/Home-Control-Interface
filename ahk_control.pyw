@@ -16,7 +16,7 @@ class Hotkey:
     # config loader
     with open('config.json') as json_file:
         data = json.load(json_file)
-    debug = data['Settings']['debug']
+
 
     def setup_plugs(self):
         # special plug setup for quick use
@@ -62,30 +62,20 @@ class Hotkey:
         else:
             print('No args.')
             return
-        # command activation
-        light_commands = [
-            'toggle_lights',
-            'backlight',
-            'toggle_lights',
-            'toggle_lights',
-        ]
-        plug_commands = [
-            'toggle_heater',
-            'toggle_lighthouse'
-        ]
         # light check
-        if command in light_commands:
+        if command in ['toggle_lights', 'backlight', 'toggle_lights', 'toggle_lights']:
             self.lights = Lights()
             if command == 'toggle_lights':
                 self.lights.toggle_lights(all=True)
             elif command == 'backlight':
                 self.lights.set_scene('Backlight')
         # plug check
-        elif command in plug_commands:
+        elif command in ['toggle_heater','toggle_lighthouse']:
             if not self.setup_plugs():
                 return
             if command == 'toggle_heater':
                 self.toggle_plug(self.heater)
+        # other
         else:
             self.computer = Computer()
             if command == 'switch_to_pc':
