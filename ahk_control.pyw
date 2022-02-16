@@ -55,10 +55,10 @@ class Hotkey:
         Runs given `command`.
         '''
         # determines what the command is
-        if command is not None:
-            print('Running test command.')
-        elif len(sys.argv) > 1:
+        if len(sys.argv) > 1:
             command = sys.argv[1]
+        elif command is not None:
+            print('Running test command.')
         else:
             print('No args.')
             return
