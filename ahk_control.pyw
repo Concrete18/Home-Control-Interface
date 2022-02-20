@@ -17,6 +17,13 @@ class Hotkey:
     with open('config.json') as json_file:
         data = json.load(json_file)
 
+    @staticmethod
+    def on_sound():
+        playsound(r'Audio/upward.mp3')
+
+    @staticmethod
+    def off_sound():
+        playsound(r'Audio/downward.mp3')
 
     def setup_plugs(self):
         # special plug setup for quick use
@@ -44,8 +51,10 @@ class Hotkey:
         try:
             if device.get_sysinfo()["relay_state"] == 0:
                 device.turn_on()
+                self.on_sound()
             else:
                 device.turn_off()
+                self.off_sound()
         except Exception as error:
             print(f'Error toggling device\n{error}')
                 
@@ -66,9 +75,13 @@ class Hotkey:
         if command in ['toggle_lights', 'backlight', 'toggle_lights', 'toggle_lights']:
             self.lights = Lights()
             if command == 'toggle_lights':
-                self.lights.toggle_lights(all=True)
+                if self.lights.toggle_lights(all=True):
+                    self.on_sound()
+                else:
+                    self.off_sound()
             elif command == 'backlight':
                 self.lights.set_scene('Backlight')
+                self.on_sound()
         # plug check
         elif command in ['toggle_heater','toggle_lighthouse']:
             if not self.setup_plugs():
@@ -80,8 +93,10 @@ class Hotkey:
             self.computer = Computer()
             if command == 'switch_to_pc':
                 self.computer.display_switch('PC', self.script_dir)
+                self.on_sound()
             elif command == 'switch_to_tv':
                 self.computer.display_switch('TV', self.script_dir)
+                self.off_sound()
 
 
 if __name__ == "__main__":

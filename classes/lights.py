@@ -48,8 +48,10 @@ class Lights:
             print(lights_on, total_lights)
             self.off()
             print('Turned lights off.')
+            return False
         else:
             self.on()
+            return True
 
     def run(self):
         '''
