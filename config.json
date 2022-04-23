@@ -1,7 +1,7 @@
 {
     "Settings": {
         "check_pi_status": 1,
-        "computer_status_interval": 1,
+        "status_interval": 1,
         "debug": 0
     },
     "IP_Addresses": {
