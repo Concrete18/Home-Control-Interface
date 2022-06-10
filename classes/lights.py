@@ -8,6 +8,8 @@ class Lights:
         data = json.load(json_file)
     hue_hub = Bridge(data["IP_Addresses"]["hue_hub"])
 
+    bedroom_lights = ["Left Lamp", "Monitor", "Right Lamp"]
+
     def get_light_state(self, light_name):
         """
         Returns a dict with the most useful light state data or False if the light was unreachable.
@@ -56,8 +58,8 @@ class Lights:
             total_lights += 1
             bulb = self.get_light_state(lights.name)
             if not bulb:
-                return False
-            if bulb["on"] and bulb["hue"] > 100:
+                continue
+            if bulb["on"] and bulb["hue"] > 100 and lights.name in self.bedroom_lights:
                 if all:
                     lights_on += 1
                 else:
