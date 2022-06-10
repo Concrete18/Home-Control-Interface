@@ -18,11 +18,30 @@ class Hotkey(Helper):
         data = json.load(json_file)
 
     def on_sound(self):
+        """
+        ph
+        """
         playsound(r"Audio/upward.mp3")
 
     @staticmethod
     def off_sound():
+        """
+        ph
+        """
         playsound(r"Audio/downward.mp3")
+
+    def hotkey_activation_action(self, action_type):
+        """
+        ph
+        """
+        # TODO add notification
+        # self.tray.ShowMessage(self.title, info, time=self.notif_dur * 1000)
+        if action_type:
+            pass
+            # self.on_sound()
+        else:
+            pass
+            # self.off_sound()
 
     def setup_plugs(self):
         # special plug setup for quick use
@@ -50,10 +69,10 @@ class Hotkey(Helper):
         try:
             if device.get_sysinfo()["relay_state"] == 0:
                 device.turn_on()
-                self.on_sound()
+                self.hotkey_activation_action(True)
             else:
                 device.turn_off()
-                self.off_sound()
+                self.hotkey_activation_action(False)
         except Exception as error:
             print(f"Error toggling device\n{error}")
 
@@ -75,12 +94,12 @@ class Hotkey(Helper):
             self.lights = Lights()
             if command == "toggle_lights":
                 if self.lights.toggle_lights(all=True):
-                    self.on_sound()
+                    self.hotkey_activation_action(True)
                 else:
-                    self.off_sound()
+                    self.hotkey_activation_action(False)
             elif command == "backlight":
                 self.lights.set_scene("Backlight")
-                self.on_sound()
+                self.hotkey_activation_action(True)
         # plug check
         elif command in ["toggle_heater", "toggle_lighthouse"]:
             if not self.setup_plugs():
@@ -92,10 +111,10 @@ class Hotkey(Helper):
             self.computer = Computer()
             if command == "switch_to_pc":
                 self.computer.display_switch("PC")
-                self.on_sound()
+                self.hotkey_activation_action(True)
             elif command == "switch_to_tv":
                 self.computer.display_switch("TV")
-                self.off_sound()
+                self.hotkey_activation_action(False)
 
 
 if __name__ == "__main__":
