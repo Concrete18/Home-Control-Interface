@@ -52,6 +52,8 @@ class Home:
         # togglable options
         if self.plug.lighthouse_plugged_in:
             buttons.append("Lighthouse Toggle")
+        if self.plug.power_strip_plugged_in:
+            buttons.append("Valve Index Toggle")
         if self.plug.heater_plugged_in:
             buttons.append("Heater Toggle")
         # adds the separator only if it is no already the last entry
@@ -507,6 +509,9 @@ class Home:
             # smart plugs
             elif event == "Lighthouse Toggle":
                 self.plug.toggle(self.plug.Lighthouse)
+                self.plug.toggle_strip("VR Device")
+            elif event == "Valve Index Toggle":
+                self.plug.toggle_strip("Valve Index")
             elif event == "Heater Toggle":
                 self.plug.toggle(self.plug.Heater)
 
