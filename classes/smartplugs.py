@@ -1,13 +1,9 @@
-from pyHS100 import SmartPlug, Discover
+from pyHS100 import SmartPlug, SmartStrip, Discover
 from pathlib import Path
 import re, json
 
 
 class Smart_Plug:
-
-    lighthouse_plugged_in = False
-    heater_plugged_in = False
-
     def __init__(self):
         """
         ph
@@ -33,7 +29,22 @@ class Smart_Plug:
         #     }
         # }
 
-        print("Checking for active smart plugs:")
+        # Usage example when used as library:
+        # p = SmartStrip("192.168.1.105")
+        # # change state of all outlets
+        # p.turn_on()
+        # p.turn_off()
+        # # change state of a single outlet
+        # p.turn_on(index=1)
+        # # query and print current state of all outlets
+        # print(p.get_state())
+        # Errors reported by the device are raised as SmartDeviceExceptions,
+        # and should be handled by the user of the library.
+
+        print("Checking for active smart plugs and power strips:")
+        self.heater_plugged_in = False
+        self.lighthouse_plugged_in = False
+        self.power_strip_plugged_in = False
         found_plug = False
         with open("config.json") as json_file:
             data = json.load(json_file)
@@ -52,6 +63,12 @@ class Smart_Plug:
                     self.Lighthouse = SmartPlug(ip)
                     data["IP_Addresses"]["lighthouse"] = ip
                     self.lighthouse_plugged_in = 1
+                    found_plug = True
+                if "TP-LINK_Power Strip_2691" in str(dev):
+                    print("> Smart Strip Found")
+                    self.power_strip = SmartStrip(ip)
+                    data["IP_Addresses"]["valve_index"] = ip
+                    self.power_strip_plugged_in = 1
                     found_plug = True
         if found_plug is False:
             print("> None found")
@@ -76,6 +93,36 @@ class Smart_Plug:
                     button.config(relief="raised")  # Off State
         except Exception as error:
             print(f"Error toggling device\n{error}\n{name}")
+
+    def toggle_strip(self, plug_name=None):
+        """
+        Smart Power Strip toggle function.
+        """
+        # return if no power strip is plugged in
+        if not self.power_strip_plugged_in:
+            return False
+        # no plug name
+        if not plug_name:
+            relay_states = self.power_strip.get_state()
+            print(relay_states)
+            for state in relay_states:
+                if state:
+                    self.power_strip.turn_on()
+                    return True
+            self.power_strip.turn_off()
+            return True
+        # toggle by plug name
+        strip_info = self.power_strip.get_sysinfo()
+        plugs = strip_info["children"]
+        for i, plug in enumerate(plugs):
+            if plug["alias"] == plug_name:
+                if plug["state"]:
+                    self.power_strip.turn_off(index=i)
+                else:
+                    self.power_strip.turn_on(index=i)
+                return True
+        print(f"{plug_name} not found.")
+        return False
 
     @staticmethod
     def turn_off_plug(device, name="device", button=0):
