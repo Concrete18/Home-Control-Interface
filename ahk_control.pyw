@@ -5,6 +5,7 @@ import sys, json, os
 
 # classes
 from classes.lights import Lights
+from classes.smartplugs import Smart_Plug
 from classes.computer import Computer
 from classes.helper import Helper
 
@@ -62,7 +63,7 @@ class Hotkey(Helper):
         plugs = [self.lighthouse, self.heater]
         return any(plugs)
 
-    def toggle_plug(self, device):
+    def toggle_plug(self, device, first_run=True):
         """
         Smart Plug toggle function.
         """
@@ -73,11 +74,17 @@ class Hotkey(Helper):
             else:
                 device.turn_off()
                 self.hotkey_activation_action(False)
+            return True
         except Exception as error:
             print(f"Error toggling device\n{error}")
+            self.warning_sound()
+            if first_run:
+                plug = Smart_Plug()
+                plug.discover()
+                return False
 
     @Helper.benchmark
-    def run_command(self, command=None):
+    def run_command(self, command=None, first_run=True):
         """
         Runs given `command`.
         """
@@ -105,7 +112,10 @@ class Hotkey(Helper):
             if not self.setup_plugs():
                 return
             if command == "toggle_heater":
-                self.toggle_plug(self.heater)
+                success = self.toggle_plug(self.heater)
+                # rerun if failed and it is the first run
+                if not success and first_run:
+                    self.run_command(command, first_run=False)
         # other
         else:
             self.computer = Computer()
@@ -119,5 +129,6 @@ class Hotkey(Helper):
 
 if __name__ == "__main__":
     hotkey = Hotkey()
-    # hotkey.run_command("toggle_heater")
-    hotkey.run_command("toggle_lights")
+    # hotkey.run_command("toggle_lighthouse")
+    hotkey.run_command("toggle_heater")
+    # hotkey.run_command("toggle_lights")
