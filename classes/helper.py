@@ -1,6 +1,5 @@
-from pydub.playback import play
-from pydub import AudioSegment
-import time
+import winsound, time, sys
+from threading import Thread
 
 
 class Helper:
@@ -20,11 +19,17 @@ class Helper:
         return wrapped
 
     @staticmethod
-    def play_sound(song_path):
+    def warning_sound():
         """
-        WIP
+        Makes a sound denoting a task warning.
         """
-        song = AudioSegment.from_mp3(song_path)
-        quieter_song = song - 3
-        play(quieter_song)
-        # quieter_song.export("quieter_song.mp3", format="mp3")
+
+        def threaded_sound():
+            """
+            Function defined so it can be run in a new thread.
+            """
+            if sys.platform == "win32":
+                winsound.PlaySound("SystemHand", winsound.SND_ALIAS)
+
+        Thread(target=threaded_sound).start()
+        print("warning sound was played")
