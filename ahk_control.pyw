@@ -7,7 +7,7 @@ import sys, json, os
 from classes.lights import Lights
 from classes.smartplugs import Smart_Plug
 from classes.computer import Computer
-from classes.helper import Helper
+from classes.helper import Helper, benchmark
 
 
 class Hotkey(Helper):
@@ -83,7 +83,7 @@ class Hotkey(Helper):
                 plug.discover()
                 return False
 
-    @Helper.benchmark
+    @benchmark
     def run_command(self, command=None, first_run=True):
         """
         Runs given `command`.
@@ -117,7 +117,7 @@ class Hotkey(Helper):
                 if not success and first_run:
                     self.run_command(command, first_run=False)
         # other
-        else:
+        elif command in ["switch_to_pc", "switch_to_tv"]:
             self.computer = Computer()
             if command == "switch_to_pc":
                 self.computer.display_switch("PC")
@@ -125,10 +125,11 @@ class Hotkey(Helper):
             elif command == "switch_to_tv":
                 self.computer.display_switch("TV")
                 self.hotkey_activation_action(False)
+        print(f"Unknown Command: {command}")
 
 
 if __name__ == "__main__":
     hotkey = Hotkey()
     # hotkey.run_command("toggle_lighthouse")
-    hotkey.run_command("toggle_heater")
-    # hotkey.run_command("toggle_lights")
+    # hotkey.run_command("toggle_heater")
+    hotkey.run_command("toggle_lights")

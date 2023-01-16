@@ -1,4 +1,4 @@
-from phue import Bridge
+import phue
 import json, sys
 
 
@@ -6,7 +6,7 @@ class Lights:
 
     with open("config.json") as json_file:
         data = json.load(json_file)
-    hue_hub = Bridge(data["IP_Addresses"]["hue_hub"])
+    hue_hub = phue.Bridge(data["IP_Addresses"]["hue_hub"])
 
     bedroom_lights = ["Left Lamp", "Monitor", "Right Lamp"]
 
@@ -40,6 +40,13 @@ class Lights:
         """
         print("Turning Lights off.")
         self.hue_hub.set_group("My Bedroom", "on", False)
+
+    def intensity(self, room, intensity_percent):
+        """
+        Sets intensity for select room lights.
+        """
+        print(f"Setting intensity of {room} to {intensity_percent}.")
+        # self.hue_hub.set_group("My Bedroom", "on", False)
 
     def set_scene(self, scene):
         """
