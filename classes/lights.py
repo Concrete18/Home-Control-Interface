@@ -55,23 +55,31 @@ class Lights:
         print(f"Setting lights to {scene}.")
         self.hue_hub.run_scene("My Bedroom", scene, 1)
 
-    def toggle_lights(self, all=True):
+    def toggle_lights(self, all_lights=True):
         """
         Turns on all lights if they are all off or turns lights off if any are on.
+        Ignores lights that are not currently powered on.
         """
-        lights_on = 0
-        total_lights = 0
-        for lights in self.hue_hub.lights:
-            total_lights += 1
-            bulb = self.get_light_state(lights.name)
-            if not bulb:
+        lights_on, total_lights = 0, 0
+        for light in self.hue_hub.lights:
+            if not (light_state := self.get_light_state(light.name)):
                 continue
-            if bulb["on"] and bulb["hue"] > 100 and lights.name in self.bedroom_lights:
-                if all:
+            total_lights += 1
+            # skip powered off bulbs
+            if not light_state:
+                continue
+            checklist = [
+                light_state["on"],
+                light_state["hue"] > 100,
+                light.name in self.bedroom_lights,
+            ]
+            if all(checklist):
+                if all_lights:
                     lights_on += 1
                 else:
                     self.off()
                     return
+        print(f"{lights_on} light(s) on of {total_lights}.")
         if lights_on == total_lights:
             self.off()
             return False

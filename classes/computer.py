@@ -67,8 +67,8 @@ class Computer:
         """
 
         def callback(mode):
-            subprocess.call([f"Batches/{mode} Mode.bat"])
-            if mode == "PC":
+            subprocess.call([f"Batches/{mode}.bat"])
+            if "pc" in mode.lower():
                 self.set_sound_device("Logitech Speakers")
                 if self.logitech_options.exists:
                     try:

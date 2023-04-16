@@ -90,23 +90,31 @@ class Hotkey(Helper):
         """
         # determines what the command is
         if len(sys.argv) > 1:
-            command = sys.argv[1]
+            command = sys.argv[1].lower()
         elif command is not None:
-            print("Running test command.")
+            print(f"Running {command} command.")
         else:
             print("No args.")
             return
+
         # light check
-        if command in ["toggle_lights", "backlight"]:
+        if command in ["toggle_lights", "backlight", "moody", "light_fix"]:
             self.lights = Lights()
             if command == "toggle_lights":
-                if self.lights.toggle_lights(all=True):
+                if self.lights.toggle_lights(all_lights=True):
                     self.hotkey_activation_action(True)
                 else:
                     self.hotkey_activation_action(False)
             elif command == "backlight":
                 self.lights.set_scene("Backlight")
                 self.hotkey_activation_action(True)
+            elif command == "moody":
+                self.lights.set_scene("Moody")
+                self.hotkey_activation_action(True)
+            elif command == "light_fix":
+                self.lights.set_scene("Blink Fix")
+                self.hotkey_activation_action(True)
+
         # plug check
         elif command in ["toggle_heater", "toggle_lighthouse"]:
             if not self.setup_plugs():
@@ -116,20 +124,24 @@ class Hotkey(Helper):
                 # rerun if failed and it is the first run
                 if not success and first_run:
                     self.run_command(command, first_run=False)
+
         # other
-        elif command in ["switch_to_pc", "switch_to_tv"]:
+        elif "pc" in command:
             self.computer = Computer()
-            if command == "switch_to_pc":
-                self.computer.display_switch("PC")
+            if command == "pc_main":
+                self.computer.display_switch("PC Main")
                 self.hotkey_activation_action(True)
-            elif command == "switch_to_tv":
-                self.computer.display_switch("TV")
+            elif command == "pc_extend":
+                self.computer.display_switch("PC Extend")
+                self.hotkey_activation_action(False)
+            elif command == "pc_secondary":
+                self.computer.display_switch("PC Secondary")
                 self.hotkey_activation_action(False)
         print(f"Unknown Command: {command}")
 
 
 if __name__ == "__main__":
     hotkey = Hotkey()
-    # hotkey.run_command("toggle_lighthouse")
-    # hotkey.run_command("toggle_heater")
     hotkey.run_command("toggle_lights")
+    # hotkey.run_command("toggle_heater")
+    # hotkey.run_command("pc_extend")
