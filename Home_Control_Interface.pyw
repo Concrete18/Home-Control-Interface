@@ -9,7 +9,6 @@ from classes.smartplugs import Smart_Plug
 
 
 class Home:
-
     script_dir = os.path.dirname(os.path.abspath(__file__))
     os.chdir(script_dir)
 
@@ -99,7 +98,7 @@ class Home:
         steamvr_shortcut = Path(
             "D:/My Installed Games/Steam Games/steamapps/common/SteamVR/bin/win64/vrstartup.exe"
         )
-        if steamvr_shortcut.isfile():
+        if steamvr_shortcut.is_file():
             subprocess.call(steamvr_shortcut.name)
 
     def create_window(self):

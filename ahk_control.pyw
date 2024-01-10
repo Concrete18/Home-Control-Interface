@@ -1,7 +1,7 @@
 from pyHS100 import SmartPlug
 from playsound import playsound
 from pathlib import Path
-import sys, json, os
+import sys, json, os, subprocess
 
 # classes
 from classes.lights import Lights
@@ -11,7 +11,6 @@ from classes.helper import Helper, benchmark
 
 
 class Hotkey(Helper):
-
     script_dir = os.path.dirname(os.path.abspath(__file__))
 
     # config loader
@@ -49,13 +48,15 @@ class Hotkey(Helper):
         json_file = Path("config.json")
         with open(json_file, "r") as f:
             data = json.load(f)
+            # heater
             heater_ip = data["IP_Addresses"]["heater"]
-            lighthouse_ip = data["IP_Addresses"]["lighthouse"]
             if heater_ip:
                 self.heater = SmartPlug(heater_ip)
             else:
                 playsound("Audio/Heater_not_found.wav")
                 self.heater = False
+            # vr
+            lighthouse_ip = data["IP_Addresses"]["lighthouse"]
             if lighthouse_ip:
                 self.lighthouse = SmartPlug(lighthouse_ip)
             else:
@@ -115,6 +116,20 @@ class Hotkey(Helper):
                 self.lights.set_scene("Blink Fix")
                 self.hotkey_activation_action(True)
 
+        # VR
+        if command == "vr":
+            return
+            if not self.setup_plugs():
+                return
+            self.toggle_plug(self.lighthouse)
+            # start steam VR
+            steamvr_shortcut = Path(
+                "C:/Program Files (x86)/Steam/steamapps/common/SteamVR/bin/win64/vrstartup.exe"
+            )
+            if steamvr_shortcut.is_file():
+                print("yay it works")
+                # subprocess.call(steamvr_shortcut.name)
+
         # plug check
         elif command in ["toggle_heater", "toggle_lighthouse"]:
             if not self.setup_plugs():
@@ -137,11 +152,10 @@ class Hotkey(Helper):
             elif command == "pc_secondary":
                 self.computer.display_switch("PC Secondary")
                 self.hotkey_activation_action(False)
-        print(f"Unknown Command: {command}")
 
 
 if __name__ == "__main__":
     hotkey = Hotkey()
-    hotkey.run_command("toggle_lights")
-    # hotkey.run_command("toggle_heater")
+    # hotkey.run_command("vr")
+    hotkey.run_command("Backlight")
     # hotkey.run_command("pc_extend")

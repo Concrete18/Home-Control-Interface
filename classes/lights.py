@@ -3,12 +3,15 @@ import json, sys
 
 
 class Lights:
-
     with open("config.json") as json_file:
         data = json.load(json_file)
     hue_hub = phue.Bridge(data["IP_Addresses"]["hue_hub"])
 
-    bedroom_lights = ["Left Lamp", "Monitor", "Right Lamp"]
+    bedroom_lights = [
+        "Left Lamp",
+        # "Monitor",
+        "Right Lamp",
+    ]
 
     def get_light_state(self, light_name):
         """
@@ -32,28 +35,28 @@ class Lights:
         Sets all lights to on.
         """
         print("Turning Lights on.")
-        self.hue_hub.run_scene("My Bedroom", "Normal", 1)
+        self.hue_hub.run_scene("Bedroom", "Bright", 1)
 
     def off(self):
         """
         Sets all lights to off.
         """
         print("Turning Lights off.")
-        self.hue_hub.set_group("My Bedroom", "on", False)
+        self.hue_hub.set_group("Bedroom", "on", False)
 
     def intensity(self, room, intensity_percent):
         """
         Sets intensity for select room lights.
         """
         print(f"Setting intensity of {room} to {intensity_percent}.")
-        # self.hue_hub.set_group("My Bedroom", "on", False)
+        # self.hue_hub.set_group("Bedroom", "on", False)
 
     def set_scene(self, scene):
         """
         Sets the Hue lights to the entered scene.
         """
         print(f"Setting lights to {scene}.")
-        self.hue_hub.run_scene("My Bedroom", scene, 1)
+        self.hue_hub.run_scene("Bedroom", scene, 1)
 
     def toggle_lights(self, all_lights=True):
         """
