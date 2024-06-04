@@ -39,4 +39,4 @@ pip install -r requirements.txt
 * Tkinter is used for the interface
 * PySimpleGUIWx and PythonWx for the task bar icon.
 
-![Image of Home Control Interface](https://raw.githubusercontent.com/Concrete18/Home-Control-Interface/master/screenshot.png)
+![Image of Home Control Interface](https://raw.githubusercontent.com/Concrete18/Home-Control-Interface/master/images/screenshot.png)

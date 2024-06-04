@@ -157,5 +157,5 @@ class Hotkey(Helper):
 if __name__ == "__main__":
     hotkey = Hotkey()
     # hotkey.run_command("vr")
-    hotkey.run_command("toggle_lights")
+    hotkey.run_command("Backlight")
     # hotkey.run_command("pc_extend")
